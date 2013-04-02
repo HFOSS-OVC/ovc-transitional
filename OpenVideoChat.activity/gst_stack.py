@@ -22,10 +22,16 @@
 .. moduleauthor:: Fran Rogers <fran@dumetella.net>
 .. moduleauthro:: Remy DeCausemaker <remyd@civx.us>
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
+.. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
 """
 
+#External Imports
 import gst
 
+#Internal Imports
+
+
+#Define the limitations of the device
 CAPS = "video/x-raw-yuv,width=320,height=240,framerate=15/1"
 
 
@@ -34,11 +40,11 @@ class GSTStack:
     def __init__(self, link_function):
         self._out_pipeline = None
         self._in_pipeline = None
-        self.link_funciton = link_function
 
     def build_outgoing_pipeline(self, ip):
+        #Checks if there is outgoing pipeline already
         if self._out_pipeline != None:
-            print "WARNING: outgoing pipline exists"
+            print "WARNING: outgoing pipeline exists"
             return
 
         print "Building outgoing pipeline UDP to %s" % ip
@@ -122,7 +128,7 @@ class GSTStack:
 
             if message.structure.get_name() == "prepare-xwindow-id":
                 # Assign the viewport
-                self.link_funciton(message.src, 'PREVIEW')
+                self.link_function(message.src, 'PREVIEW')
 
         bus.connect("message", on_message)
         bus.connect("sync-message::element", on_sync_message)
@@ -183,7 +189,7 @@ class GSTStack:
 
             if message.structure.get_name() == "prepare-xwindow-id":
                 # Assign the viewport
-                self.link_funciton(message.src, 'MAIN')
+                self.link_function(message.src, 'MAIN')
 
         bus.connect("message", on_message)
         bus.connect("sync-message::element", on_sync_message)
