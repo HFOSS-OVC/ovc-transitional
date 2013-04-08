@@ -41,6 +41,8 @@ class GSTStack:
         self._out_pipeline = None
         self._in_pipeline = None
 
+    
+    #Outgoing Pipeline
     def build_outgoing_pipeline(self, ip):
         #Checks if there is outgoing pipeline already
         if self._out_pipeline != None:
@@ -50,7 +52,7 @@ class GSTStack:
         print "Building outgoing pipeline UDP to %s" % ip
 
         # Pipeline:
-        # v4l2src -> videorate -> (CAPS) -> tee -> theoraenc -> udpsink
+        # v4l2src -> videorate -> (CAPS) -> tee -> theoraenc -> rtptheorapay -> udpsink
         #                                     \
         #                     -> queue -> ffmpegcolorspace -> ximagesink
         self._out_pipeline = gst.Pipeline()
@@ -82,11 +84,17 @@ class GSTStack:
         self._out_pipeline.add(video_enc)
         video_tee.link(video_enc)
 
-        # Add udpsink
+        #Add rtptheorapay
+        video_rtp_theora_pay = gst.element_factory_make("rtptheorapay")
+        self._out_pipeline.add(video_rtp_theora_pay)
+        video_enc.link(video_rtp_theora_pay)
+
+        #Add udpsink
         udp_sink = gst.element_factory_make("udpsink")
         udp_sink.set_property("host", ip)
         self._out_pipeline.add(udp_sink)
-        video_enc.link(udp_sink)
+        video_rtp_theora_pay.link(udp_sink)
+
 
         ## On other side of pipeline. connect tee to ximagesink
         # Queue element to receive video from tee
@@ -133,26 +141,34 @@ class GSTStack:
         bus.connect("message", on_message)
         bus.connect("sync-message::element", on_sync_message)
 
+    
+
+    #Incoming Pipeline
     def build_incoming_pipeline(self):
         if self._in_pipeline != None:
-            print "WARNING: incoming pipline exists"
+            print "WARNING: incoming pipeline exists"
             return
 
         # Set up the gstreamer pipeline
         print "Building Incoming Video Pipeline"
 
         # Pipeline:
-        # udpsrc -> theoradec -> ffmpegcolorspace -> xvimagesink
+        # udpsrc -> rtptheoradepay -> theoradec -> ffmpegcolorspace -> xvimagesink
         self._in_pipeline = gst.Pipeline()
 
         # Video Source
         video_src = gst.element_factory_make("udpsrc")
         self._in_pipeline.add(video_src)
 
+        # RTP Theora Depay
+        video_rtp_theora_depay = gst.element_factory_make("rtptheoradepay")
+        self._in_pipeline.add(video_rtp_theora_depay)
+        video_src.link(video_rtp_theora_depay)
+
         # Video decode
         video_decode = gst.element_factory_make("theoradec")
         self._in_pipeline.add(video_decode)
-        video_src.link(video_decode)
+        video_rtp_theora_depay.link(video_decode)
 
         # Change colorspace for xvimagesink
         video_colorspace = gst.element_factory_make("ffmpegcolorspace")
