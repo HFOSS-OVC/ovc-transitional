@@ -23,26 +23,25 @@
 .. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
 """
 
-import gtk
 from gettext import gettext as _
 
 from sugar.activity.activity import ActivityToolbox
 from sugar.graphics.toolbutton import ToolButton
 
 
-class Gui (gtk.VBox):
+class Gui (Gtk.VBox):
 
     def __init__(self, activity):
 
-        gtk.VBox.__init__(self)
+        Gtk.VBox.__init__(self)
 
         self.activity = activity
 
-        mov_box = gtk.HBox()
+        mov_box = Gtk.HBox()
 
         #Add movie window
-        self.movie_window = gtk.DrawingArea()
-        self.movie_window_preview = gtk.DrawingArea()
+        self.movie_window = Gtk.DrawingArea()
+        self.movie_window_preview = Gtk.DrawingArea()
         mov_box.pack_start(self.movie_window)
         mov_box.pack_start(self.movie_window_preview)
 
@@ -51,32 +50,32 @@ class Gui (gtk.VBox):
         ##################
 
         # Chat expander allows chat to be hidden/shown
-        chat_expander = gtk.Expander(_("Chat"))
+        chat_expander = Gtk.Expander(_("Chat"))
         chat_expander.set_expanded(True)
         self.pack_start(chat_expander, False)
 
-        chat_holder = gtk.VBox()
+        chat_holder = Gtk.VBox()
         chat_expander.add(chat_holder)
 
         # Create entry and history view for chat
-        chat_history = gtk.ScrolledWindow()
-        chat_history.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        chat_history = Gtk.ScrolledWindow()
+        chat_history.set_policy(Gtk.POLICY_NEVER, Gtk.POLICY_AUTOMATIC)
 
-        self.chat_text = gtk.TextBuffer()
-        self.text_view = gtk.TextView(self.chat_text)
+        self.chat_text = Gtk.TextBuffer()
+        self.text_view = Gtk.TextView(self.chat_text)
         self.text_view.set_editable(False)
         self.text_view.set_size_request(-1, 200)
 
         chat_history.add(self.text_view)
 
         # Send button to complete feel of a chat program
-        self.chat_entry = gtk.Entry()
+        self.chat_entry = Gtk.Entry()
         self.chat_entry.connect("activate", self.send_chat)
-        send_but = gtk.Button(_("Send"))
+        send_but = Gtk.Button(_("Send"))
         send_but.connect("clicked", self.send_chat)
 
         # Wrap button and entry in hbox so they are on the same line
-        chat_entry_hbox = gtk.HBox()
+        chat_entry_hbox = Gtk.HBox()
         chat_entry_hbox.pack_start(self.chat_entry)
         chat_entry_hbox.pack_end(send_but, False)
 
@@ -105,7 +104,7 @@ class Gui (gtk.VBox):
             self.chat_entry.set_text("")
 
     def build_toolbars(self):
-        self.settings_bar = gtk.Toolbar()
+        self.settings_bar = Gtk.Toolbar()
 
         self.settings_buttons = {}
 

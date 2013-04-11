@@ -23,12 +23,15 @@
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
 """
 
-from gettext import gettext as _
-
-from sugar.activity.activity import Activity
+#External Imports
+import gi
 from gi.repository import GObject
 
+from gettext import gettext as _
+from sugar.activity.activity import Activity
 from sugar.graphics.alert import NotifyAlert
+
+#Local Imports
 from gui import Gui
 from sugar_network_stack import SugarNetworkStack
 from gst_stack import GSTStack
