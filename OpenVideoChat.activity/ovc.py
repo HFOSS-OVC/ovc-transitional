@@ -26,7 +26,7 @@
 from gettext import gettext as _
 
 from sugar.activity.activity import Activity
-import gobject
+from gi.repository import GObject
 
 from sugar.graphics.alert import NotifyAlert
 from gui import Gui
@@ -40,8 +40,8 @@ class OpenVideoChatActivity(Activity):
     def __init__(self, handle):
         Activity.__init__(self, handle)
 
-        # gobject is used for timeing (will be removed when rtp is implemented)
-        gobject.threads_init()
+        # GObject is used for timeing (will be removed when rtp is implemented)
+        GObject.threads_init()
 
         # Set if they started the activity
         self.isServer = not self._shared_activity
@@ -79,7 +79,7 @@ class OpenVideoChatActivity(Activity):
         #################
         self.gststack = GSTStack(self.gui.send_video_to_screen)
         self.gststack.build_incoming_pipeline()
-        gobject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
+        GObject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
 
         print "Activity Started"
 
@@ -172,8 +172,7 @@ class OpenVideoChatActivity(Activity):
                 self.gststack.build_outgoing_pipeline(args)
 
                 # FIXME
-                gobject.timeout_add(5000, self.gststack.
-                                    start_stop_outgoing_pipeline)
+                GObject.timeout_add(5000, self.gststack.start_stop_outgoing_pipeline)
 
             else:
                 print args, "has sent its ip, ignoring as we are already \
