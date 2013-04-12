@@ -24,6 +24,7 @@
 """
 
 #from gettext import gettext as _    #For Translations
+import gi
 from sugar3.graphics.toolbarbox import ToolbarBox
 from sugar3.graphics.toolbarbox import ToolbarButton
 from gi.repository import Gtk
