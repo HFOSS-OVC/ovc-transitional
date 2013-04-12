@@ -31,6 +31,7 @@ from gi.repository import Gst
 
 #Internal Imports
 
+print "Done with gst_stack"
 
 #Define the limitations of the device
 CAPS = "video/x-raw-yuv,width=320,height=240,framerate=15/1"

@@ -23,20 +23,31 @@
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
 """
 
+print "starting ovc"
+
 #External Imports
 import gi
 from gi.repository import GObject
 
+print "Done with OVC external"
+
 #from gettext import gettext as _    #For Translations
 from sugar3.activity.activity import Activity
+print "1"
 from sugar3.graphics.alert import NotifyAlert
+print "2"
+from sugar3 import profile
+print "3"
 
 #Local Imports
 from gui import Gui
+print "4"
 from sugar_network_stack import SugarNetworkStack
+print "5"
 from gst_stack import GSTStack
-from sugar3 import profile
+print "6"
 
+print "Done with OVC"
 
 class OpenVideoChatActivity(Activity):
 

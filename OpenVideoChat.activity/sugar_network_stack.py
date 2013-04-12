@@ -27,6 +27,8 @@ from sugar3.presence.tubeconn import TubeConnection
 from sugar3.presence import presenceservice
 from tube_speak import TubeSpeak
 
+print "Done with netstack"
+
 SERVICE = "org.laptop.OpenVideoChat"
 IFACE = SERVICE
 PATH = "/org/laptop/OpenVideoChat"

@@ -26,6 +26,8 @@
 from dbus.service import signal
 from dbus.gobject_service import ExportedGObject
 
+print "Done with TubeSpeak"
+
 SERVICE = "org.laptop.OpenVideoChat"
 IFACE = SERVICE
 PATH = "/org/laptop/OpenVideoChat"

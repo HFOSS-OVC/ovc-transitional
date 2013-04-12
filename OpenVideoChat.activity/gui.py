@@ -24,21 +24,24 @@
 """
 
 #from gettext import gettext as _    #For Translations
+from sugar3.graphics.toolbarbox import ToolbarBox
+from sugar3.graphics.toolbarbox import ToolbarButton
+from gi.repository import Gtk
+print "gui 3"
+from gi.repository import Gtk
 
-from sugar3.activity.activity import ActivityToolbox
-from sugar3.graphics.toolbutton import ToolButton
 
-
-class Gui (Gtk.Box(orientation=Gtk.Orientation.VERTICAL)):
-
+class Gui (Gtk.Box):
+    print "gui 1"
     def __init__(self, activity):
-
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+        print "gui 1.5"
         Gtk.Box(orientation=Gtk.Orientation.VERTICAL).__init__(self)
-
+        print "gui 2"
         self.activity = activity
-
+        print "gui 3"
         mov_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True, spacing=8)
-
+        print "Done with gui"
         #Add movie window
         self.movie_window = Gtk.DrawingArea()
         self.movie_window_preview = Gtk.DrawingArea()
@@ -114,7 +117,7 @@ class Gui (Gtk.Box(orientation=Gtk.Orientation.VERTICAL)):
                                               self.force_redraw, None)
         self.settings_bar.insert(self.settings_buttons['reload_video'], -1)
 
-        self.toolbox = ActivityToolbox(self.activity)
+        self.toolbox = ToolbarBox(self.activity)
         self.toolbox.add_toolbar(_("Settings"), self.settings_bar)
 
         self.activity.set_toolbar_box(self.toolbox)
