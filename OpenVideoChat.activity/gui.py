@@ -23,38 +23,38 @@
 .. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
 """
 
-from gettext import gettext as _
+#from gettext import gettext as _    #For Translations
 
-from sugar.activity.activity import ActivityToolbox
-from sugar.graphics.toolbutton import ToolButton
+from sugar3.activity.activity import ActivityToolbox
+from sugar3.graphics.toolbutton import ToolButton
 
 
-class Gui (Gtk.VBox):
+class Gui (Gtk.Box(orientation=Gtk.Orientation.VERTICAL)):
 
     def __init__(self, activity):
 
-        Gtk.VBox.__init__(self)
+        Gtk.Box(orientation=Gtk.Orientation.VERTICAL).__init__(self)
 
         self.activity = activity
 
-        mov_box = Gtk.HBox()
+        mov_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True, spacing=8)
 
         #Add movie window
         self.movie_window = Gtk.DrawingArea()
         self.movie_window_preview = Gtk.DrawingArea()
-        mov_box.pack_start(self.movie_window)
-        mov_box.pack_start(self.movie_window_preview)
+        mov_box.pack_start(self.movie_window, expand=True, fill=True, padding=0)
+        mov_box.pack_start(self.movie_window_preview, expand=True, fill=True, padding=0)
 
-        self.pack_start(mov_box)
+        self.pack_start(mov_box, expand=True, fill=True, padding=0)
         # Add Chat section
         ##################
 
         # Chat expander allows chat to be hidden/shown
         chat_expander = Gtk.Expander(_("Chat"))
         chat_expander.set_expanded(True)
-        self.pack_start(chat_expander, False)
+        self.pack_start(chat_expander, expand=False, fill=True, padding=0)
 
-        chat_holder = Gtk.VBox()
+        chat_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         chat_expander.add(chat_holder)
 
         # Create entry and history view for chat
@@ -75,13 +75,13 @@ class Gui (Gtk.VBox):
         send_but.connect("clicked", self.send_chat)
 
         # Wrap button and entry in hbox so they are on the same line
-        chat_entry_hbox = Gtk.HBox()
-        chat_entry_hbox.pack_start(self.chat_entry)
-        chat_entry_hbox.pack_end(send_but, False)
+        chat_entry_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True, spacing=8)
+        chat_entry_hbox.pack_start(self.chat_entry, expand=True, fill=True, padding=0)
+        chat_entry_hbox.pack_end(send_but, expand=False, fill=True, padding=0)
 
         # Add chat history and entry to expander
-        chat_holder.pack_start(chat_history)
-        chat_holder.pack_start(chat_entry_hbox, False)
+        chat_holder.pack_start(chat_history, expand=True, fill=True, padding=0)
+        chat_holder.pack_start(chat_entry_hbox, expand=False, fill=True, padding=0)
 
         # Show gui
         self.build_toolbars()
@@ -117,7 +117,7 @@ class Gui (Gtk.VBox):
         self.toolbox = ActivityToolbox(self.activity)
         self.toolbox.add_toolbar(_("Settings"), self.settings_bar)
 
-        self.activity.set_toolbox(self.toolbox)
+        self.activity.set_toolbar_box(self.toolbox)
         self.toolbox.show_all()
 
     def force_redraw(self, widget, value=None):
@@ -130,6 +130,6 @@ class Gui (Gtk.VBox):
 
     def send_video_to_screen(self, source, screen):
         if screen == 'MAIN':
-            source.set_xwindow_id(self.movie_window.window.xid)
+            source.set_xwindow_id(self.movie_window.get_property('window').get_xid())
         elif screen == 'PREVIEW':
-            source.set_xwindow_id(self.movie_window_preview.window.xid)
+            source.set_xwindow_id(self.movie_window_preview.get_property('window').get_xid())

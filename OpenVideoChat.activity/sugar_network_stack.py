@@ -23,8 +23,8 @@
 .. moduleauthro:: Remy DeCausemaker <remyd@civx.us>
 """
 import telepathy
-from sugar.presence.tubeconn import TubeConnection
-from sugar.presence import presenceservice
+from sugar3.presence.tubeconn import TubeConnection
+from sugar3.presence import presenceservice
 from tube_speak import TubeSpeak
 
 SERVICE = "org.laptop.OpenVideoChat"
