@@ -25,9 +25,14 @@
 .. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
 """
 
+print "GST"
+
 #External Imports
+import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
+
+print "gst 1"
 
 #Internal Imports
 
