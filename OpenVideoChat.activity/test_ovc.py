@@ -16,7 +16,7 @@ os.system("date >> ErrorLog.txt")
 os.system("echo \"---------------\" >> ErrorLog.txt")
 
 
-os.system("sugar-launch org.laptop.OpenVideoChat &>> ErrorLog.txt")
+os.system("sugar-launch org.laptop.OpenVideoChat >> ErrorLog.txt")
 
 os.system("git add ErrorLog.txt")
 os.system("git commit -m\"Updating Error Log.\"")
