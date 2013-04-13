@@ -12,11 +12,11 @@ os.system("sudo python setup.py dist_xo")
 os.system("sugar-install-bundle OpenVideoChat-1.xo")
 
 os.system("echo \"---------------\" >> ErrorLog.txt")
-os.system("date >> ErrorLog.txt")
+os.system("zdump EST >> ErrorLog.txt")
 os.system("echo \"---------------\" >> ErrorLog.txt")
 
 
-os.system("sugar-launch org.laptop.OpenVideoChat >> ErrorLog.txt")
+os.system("sugar-launch org.laptop.OpenVideoChat 2>>&1 ErrorLog.txt")
 
 os.system("git add ErrorLog.txt")
 os.system("git commit -m\"Updating Error Log.\"")
