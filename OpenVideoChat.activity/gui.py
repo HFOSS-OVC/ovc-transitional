@@ -35,7 +35,7 @@ from gi.repository import Gtk
 class Gui (Gtk.Box):
     def __init__(self, activity):
         print "GUI 1"
-        #self.set_orientation(Gtk.Orientation.VERTICAL)
+        self.set_orientation(Gtk.Orientation.VERTICAL)
         print "GUI 2"
         Gtk.Box(orientation=Gtk.Orientation.VERTICAL).__init__(self)
         print "GUI 3"
@@ -54,7 +54,7 @@ class Gui (Gtk.Box):
         mov_box.pack_start(self.movie_window_preview, expand=True, fill=True, padding=0)
         print "GUI 9"
 
-        #self.pack_start(mov_box, expand=True, fill=True, padding=0)
+        self.pack_start(mov_box, expand=True, fill=True, padding=0)
         print "GUI 10"
         # Add Chat section
         ##################
