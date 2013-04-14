@@ -47,7 +47,7 @@ class OpenVideoChatActivity(Activity):
         GObject.threads_init()
 
         # Set if they started the activity
-        self.isServer = not self._shared_activity
+        self.isServer = not self.shared_activity
 
         # Let sugar know we only want a 1 to 1 share (limit to 2 people)
         # Note this is not enforced by sugar yet :(
