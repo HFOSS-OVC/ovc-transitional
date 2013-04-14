@@ -46,11 +46,16 @@ class Gui (Gtk.Box):
         
         #Add movie window
         self.movie_window = Gtk.DrawingArea()
+        print "GUI 6"
         self.movie_window_preview = Gtk.DrawingArea()
+        print "GUI 7"
         mov_box.pack_start(self.movie_window, expand=True, fill=True, padding=0)
+        print "GUI 8"
         mov_box.pack_start(self.movie_window_preview, expand=True, fill=True, padding=0)
+        print "GUI 9"
 
         self.pack_start(mov_box, expand=True, fill=True, padding=0)
+        print "GUI 10"
         # Add Chat section
         ##################
 
