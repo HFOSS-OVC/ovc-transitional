@@ -64,11 +64,15 @@ class Gui (Gtk.Box):
         chat_expander.set_expanded(True)
         self.pack_start(chat_expander, expand=False, fill=True, padding=0)
 
-        chat_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        chat_expander.add(chat_holder)
+        print "11"
 
+        chat_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        print "12"
+        chat_expander.add(chat_holder)
+        print "13"
         # Create entry and history view for chat
         chat_history = Gtk.ScrolledWindow()
+        print "14"
         chat_history.set_policy(Gtk.POLICY_NEVER, Gtk.POLICY_AUTOMATIC)
 
         self.chat_text = Gtk.TextBuffer()
