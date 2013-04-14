@@ -22,12 +22,12 @@
 .. moduleauthor:: Fran Rogers <fran@dumetella.net>
 .. moduleauthro:: Remy DeCausemaker <remyd@civx.us>
 """
+
 import telepathy
 from sugar3.presence.tubeconn import TubeConnection
 from sugar3.presence import presenceservice
 from tube_speak import TubeSpeak
 
-print "Done with netstack"
 
 SERVICE = "org.laptop.OpenVideoChat"
 IFACE = SERVICE

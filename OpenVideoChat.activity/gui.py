@@ -36,13 +36,10 @@ class Gui (Gtk.Box):
     print "gui 1"
     def __init__(self, activity):
         self.set_orientation(Gtk.Orientation.VERTICAL)
-        print "gui 1.5"
         Gtk.Box(orientation=Gtk.Orientation.VERTICAL).__init__(self)
-        print "gui 2"
         self.activity = activity
-        print "gui 3"
         mov_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True, spacing=8)
-        print "Done with gui"
+        
         #Add movie window
         self.movie_window = Gtk.DrawingArea()
         self.movie_window_preview = Gtk.DrawingArea()
