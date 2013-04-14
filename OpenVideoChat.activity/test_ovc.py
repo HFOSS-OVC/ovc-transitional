@@ -16,7 +16,7 @@ os.system("zdump EST >> ErrorLog.txt")
 os.system("echo \"---------------------------------\" >> ErrorLog.txt")
 
 
-os.system("sugar-launch org.laptop.OpenVideoChat >> ErrorLog.txt 2>&1")
+os.system("sugar-launch org.laptop.OpenVideoChat | tee ErrorLog.txt")
 
 os.system("git add ErrorLog.txt")
 os.system("git commit -m\"Updating Error Log.\"")
