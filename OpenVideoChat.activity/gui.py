@@ -63,7 +63,7 @@ class Gui (Gtk.Box):
         chat_expander = Gtk.Expander(label=(_("Chat")))
         chat_expander.set_expanded(True)
         print "10.5"
-        self.pack_start(chat_expander, expand=False, fill=True, padding=0)
+        self.pack_start(chat_expander, False, True, 0)
 
         print "11"
 
