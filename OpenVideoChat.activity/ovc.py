@@ -27,7 +27,7 @@
 import gi
 from gi.repository import GObject
 
-#from gettext import gettext as _    #For Translations
+from gettext import gettext as _    #For Translations
 from sugar3.activity.activity import Activity
 from sugar3.graphics.alert import NotifyAlert
 from sugar3 import profile
