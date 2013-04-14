@@ -25,18 +25,12 @@
 .. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
 """
 
-print "GST"
-
 #External Imports
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 
-print "gst 1"
-
 #Internal Imports
-
-print "Done with gst_stack"
 
 #Define the limitations of the device
 CAPS = "video/x-raw-yuv,width=320,height=240,framerate=15/1"

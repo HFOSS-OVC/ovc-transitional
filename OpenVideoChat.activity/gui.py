@@ -33,7 +33,6 @@ from gi.repository import Gtk
 
 
 class Gui (Gtk.Box):
-    print "gui 1"
     def __init__(self, activity):
         self.set_orientation(Gtk.Orientation.VERTICAL)
         Gtk.Box(orientation=Gtk.Orientation.VERTICAL).__init__(self)
