@@ -9,7 +9,7 @@ os.system("git pull")
 os.system("sudo python setup.py build")
 os.system("sudo python setup.py dist_xo")
 
-os.system("sugar-install-bundle OpenVideoChat-1.xo")
+os.system("sugar-install-bundle dist/OpenVideoChat-1.xo")
 
 os.system("echo \"---------------\" >> ErrorLog.txt")
 os.system("zdump EST >> ErrorLog.txt")
