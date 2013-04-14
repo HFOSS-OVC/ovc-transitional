@@ -32,7 +32,7 @@ print "gui 3"
 from gi.repository import Gtk
 
 
-class Gui (Gtk.Box):
+class Gui (Gtk):
     def __init__(self, activity):
         print "GUI 1"
         #self.set_orientation(Gtk.Orientation.VERTICAL)
@@ -60,8 +60,7 @@ class Gui (Gtk.Box):
         ##################
 
         # Chat expander allows chat to be hidden/shown
-        chat_expander = Gui.gtk_expander_new(_("Chat"))
-        chat_expander.set_label(_("Chat"))
+        chat_expander = Gtk.Expander(label=(_("Chat")))
         chat_expander.set_expanded(True)
         self.pack_start(chat_expander, expand=False, fill=True, padding=0)
 
