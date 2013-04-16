@@ -21,66 +21,73 @@
 .. moduleauthor:: Fran Rogers <fran@dumetella.net>
 .. moduleauthor:: Remy DeCausemaker <remyd@civx.us>
 .. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
+.. moduleauthor:: Casey DeLorme <cxd4280@rit.edu>
 """
 
-from gettext import gettext as _    #For Translations
+# External Imports
 import gi
+from gi.repository import Gtk
+from gettext import gettext as _#For Translations
 from sugar3.graphics.toolbarbox import ToolbarBox
 from sugar3.graphics.toolbarbox import ToolbarButton
+<<<<<<< HEAD
 from gi.repository import Gtk
 print "gui 3"
 from gi.repository import Gtk
+=======
+
+# from sugar.activity.activity import ActivityToolbox
+# from sugar.graphics.toolbutton import ToolButton
+>>>>>>> 77cc2b7... Adding bugfixes by CDeLorme
 
 
-class Gui (Gtk.Box):
+
+class Gui(Gtk.Box):
     def __init__(self, activity):
-        print "GUI 1"
+        Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
-        print "GUI 2"
-        Gtk.Box(orientation=Gtk.Orientation.VERTICAL).__init__(self)
-        print "GUI 3"
+
+        # Set Activity
         self.activity = activity
-        print "GUI 4"
-        mov_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True, spacing=8)
-        print "GUI 5"
-        
+
+        # Prepare Movie Container
+        mov_box = Gtk.Box(True, 8)
+        mov_box.set_orientation(Gtk.Orientation.VERTICAL)
+
         #Add movie window
         self.movie_window = Gtk.DrawingArea()
-        print "GUI 6"
         self.movie_window_preview = Gtk.DrawingArea()
-        print "GUI 7"
-        mov_box.pack_start(self.movie_window, expand=True, fill=True, padding=0)
-        print "GUI 8"
-        mov_box.pack_start(self.movie_window_preview, expand=True, fill=True, padding=0)
-        print "GUI 9"
+        mov_box.pack_start(self.movie_window, True, True, 0)
+        mov_box.pack_start(self.movie_window_preview, True, True, 0)
 
-        self.pack_start(mov_box, expand=True, fill=True, padding=0)
-        print "GUI 10"
+        # Add the mov_box
+        self.pack_start(mov_box, True, True, 0)
+
         # Add Chat section
         ##################
 
         # Chat expander allows chat to be hidden/shown
-        chat_expander = Gtk.Expander(label=(_("Chat")))
+        chat_expander = Gtk.Expander()
+        chat_expander.set_label(_("Chat"))
         chat_expander.set_expanded(True)
-        print "10.5"
         self.pack_start(chat_expander, False, True, 0)
 
-        print "11"
-
-        chat_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        print "12"
+        # Create Chat Container
+        chat_holder = Gtk.Box()
+        chat_holder.set_orientation(Gtk.Orientation.VERTICAL)
         chat_expander.add(chat_holder)
-        print "13"
-        # Create entry and history view for chat
+
+        # Prepare History Storage
         chat_history = Gtk.ScrolledWindow()
-        print "14"
-        chat_history.set_policy(Gtk.POLICY_NEVER, Gtk.POLICY_AUTOMATIC)
+        chat_history.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 
+        # Prepare Chat Entry Area
         self.chat_text = Gtk.TextBuffer()
-        self.text_view = Gtk.TextView(self.chat_text)
+        self.text_view = Gtk.TextView()
+        self.text_view.set_buffer(self.chat_text)
         self.text_view.set_editable(False)
+        self.text_view.set_cursor_visible(False)
         self.text_view.set_size_request(-1, 200)
-
         chat_history.add(self.text_view)
 
         # Send button to complete feel of a chat program
@@ -89,19 +96,23 @@ class Gui (Gtk.Box):
         send_but = Gtk.Button(_("Send"))
         send_but.connect("clicked", self.send_chat)
 
-        # Wrap button and entry in hbox so they are on the same line
-        chat_entry_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True, spacing=8)
-        chat_entry_hbox.pack_start(self.chat_entry, expand=True, fill=True, padding=0)
-        chat_entry_hbox.pack_end(send_but, expand=False, fill=True, padding=0)
+       # Wrap button and entry in hbox so they are on the same line
+        chat_entry_hbox = Gtk.Box(True, 8)
+        chat_entry_hbox.set_orientation(Gtk.Orientation.HORIZONTAL)
+        chat_entry_hbox.pack_start(self.chat_entry, True, True, 0)
+        chat_entry_hbox.pack_end(send_but, False, True, 0)
 
         # Add chat history and entry to expander
-        chat_holder.pack_start(chat_history, expand=True, fill=True, padding=0)
-        chat_holder.pack_start(chat_entry_hbox, expand=False, fill=True, padding=0)
+        chat_holder.pack_start(chat_history, True, True, 0)
+        chat_holder.pack_start(chat_entry_hbox, False, True, 0)
 
         # Show gui
         self.build_toolbars()
         self.show_all()
 
+        print "Done Creating Toolbars"
+
+        # Below causing errors, maybe requires toolbars code to finish execution?
         #scroll to bottom
         self.text_view.scroll_to_iter(self.chat_text.get_end_iter(), 0.1)
 
@@ -120,17 +131,32 @@ class Gui (Gtk.Box):
 
     def build_toolbars(self):
         self.settings_bar = Gtk.Toolbar()
-
         self.settings_buttons = {}
 
-        self.settings_buttons['reload_video'] = ToolButton('view-spiral')
-        self.settings_buttons['reload_video'].set_tooltip(_("Reload Screen"))
-        self.settings_buttons['reload_video'].connect("clicked",
-                                              self.force_redraw, None)
-        self.settings_bar.insert(self.settings_buttons['reload_video'], -1)
+        print "Create Tooltips Storage"
+        tips = Gtk.Tooltips()
+
+        print "Create Toolbars"
+
+        # Generate array of menu items
+        self.settings_buttons['reload_video'] = Gtk.ToolButton('view-spiral')
+
+        # self.settings_buttons['reload_video'].set_tooltip(_("Reload Screen"))
+
+        self.settings_buttons['reload_video'].connect(
+                "clicked",
+                self.force_redraw,
+                None)
+        self.settings_bar.insert(
+                self.settings_buttons['reload_video'],
+                -1)
+
+        print "Done with Reload Video"
 
         self.toolbox = ToolbarBox(self.activity)
-        self.toolbox.add_toolbar(_("Settings"), self.settings_bar)
+        self.toolbox.add_toolbar(
+                _("Settings"),
+                self.settings_bar)
 
         self.activity.set_toolbar_box(self.toolbox)
         self.toolbox.show_all()

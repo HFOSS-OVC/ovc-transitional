@@ -13,133 +13,218 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OpenVideoChat.  If not, see <http://www.gnu.org/licenses/>.
 """
-:mod: `OpenVideoChat/OpenVideoChat.activity/sugar_network_stack` --
-       Open Video Chat Sugar Networking Stack
+:mod: `OpenVideoChat/OpenVideoChat.activity/gst_stack` --
+        Open Video Chat GStreamer Stack
 =======================================================================
 
 .. moduleauthor:: Justin Lewis <jlew.blackout@gmail.com>
 .. moduleauthor:: Taylor Rose <tjr1351@rit.edu>
 .. moduleauthor:: Fran Rogers <fran@dumetella.net>
 .. moduleauthro:: Remy DeCausemaker <remyd@civx.us>
+.. moduleauthor:: Luke Macken <lmacken@redhat.com>
+.. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
 """
 
-import telepathy
-from sugar3.presence.tubeconn import TubeConnection
-from sugar3.presence import presenceservice
-from tube_speak import TubeSpeak
+#External Imports
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import Gst
+
+#Internal Imports
+
+#Define the limitations of the device
+CAPS = "video/x-raw-yuv,width=320,height=240,framerate=15/1"
 
 
-SERVICE = "org.laptop.OpenVideoChat"
-IFACE = SERVICE
-PATH = "/org/laptop/OpenVideoChat"
+class GSTStack:
 
+    def __init__(self, link_function):
+        self._out_pipeline = None
+        self._in_pipeline = None
 
-class SugarNetworkStack:
-
-    def __init__(self, activity):
-        self.__activity = activity
-        self.controlTube = None
-
-    def add_buddy(self, buddy):
-        """
-        Passes buddy nick to ovc
-        """
-        if buddy == presenceservice.get_instance().get_owner():
+    
+    #Outgoing Pipeline
+    def build_outgoing_pipeline(self, ip):
+        #Checks if there is outgoing pipeline already
+        if self._out_pipeline != None:
+            print "WARNING: outgoing pipeline exists"
             return
-        if buddy:
-            nick = buddy.props.nick
-        else:
-            nick = '???'
-        self.__activity.net_cb('buddy_add', nick)
 
-    def rem_buddy(self, buddy):
-        """
-        Remove buddy nick
-        """
-        if buddy:
-            nick = buddy.props.nick
-        else:
-            nick = '???'
-        self.__activity.net_cb('buddy_rem', nick)
+        print "Building outgoing pipeline UDP to %s" % ip
 
-    def _buddy_joined_cb(self, activity, buddy):
-        """Called when a buddy joins the shared activity."""
-        self.add_buddy(buddy)
+        # Pipeline:
+        # v4l2src -> videorate -> (CAPS) -> tee -> theoraenc -> rtptheorapay -> udpsink
+        #                                     \
+        #                     -> queue -> ffmpegcolorspace -> ximagesink
+        self._out_pipeline = Gst.Pipeline()
 
-    def _buddy_left_cb(self, activity, buddy):
-        """Called when a buddy leaves the shared activity."""
-        self.rem_buddy(buddy)
+        # Video Source
+        video_src = Gst.ElementFactory.make("v4l2src", None)
+        self._out_pipeline.add(video_src)
 
-    def joined_cb(self, activity):
-        """
-        Called when joining an existing activity
-        """
-        for buddy in self.__activity.shared_activity.get_joined_buddies():
-            self.add_buddy(buddy)
+        # Video Rate element to allow setting max framerate
+        video_rate = Gst.ElementFactory.make("videorate", None)
+        self._out_pipeline.add(video_rate)
+        video_src.link(video_rate)
 
-        self.watch_for_tubes()
+        # Add caps to limit rate and size
+        video_caps = Gst.ElementFactory.make("capsfilter", None)
+        video_caps.set_property("caps", Gst.caps_from_string(CAPS))
+        self._out_pipeline.add(video_caps)
+        video_rate.link(video_caps)
 
-    def shared_cb(self, activity):
-        """
-        Called when setting an activity to be shared
-        """
-        self.watch_for_tubes()
+        #Add tee element
+        video_tee = Gst.ElementFactory.make("tee", None)
+        self._out_pipeline.add(video_tee)
+        video_caps.link(video_tee)
 
-        # Offer DBus Tube
-        self.tubes_chan[telepathy.CHANNEL_TYPE_TUBES].OfferDBusTube(
-                                                        SERVICE, {})
+        # Add theora Encoder
+        video_enc = Gst.ElementFactory.make("theoraenc", None)
+        video_enc.set_property("bitrate", 50)
+        video_enc.set_property("speed-level", 2)
+        self._out_pipeline.add(video_enc)
+        video_tee.link(video_enc)
 
-    def watch_for_tubes(self):
-        """
-        This method sets up the listeners for new tube connections
-        """
+        #Add rtptheorapay
+        video_rtp_theora_pay = Gst.ElementFactory.make("rtptheorapay", None)
+        self._out_pipeline.add(video_rtp_theora_pay)
+        video_enc.link(video_rtp_theora_pay)
 
-        self.conn = self.__activity._shared_activity.telepathy_conn
-        self.tubes_chan = self.__activity._shared_activity.telepathy_tubes_chan
+        #Add udpsink
+        udp_sink = Gst.ElementFactory.make("udpsink", None)
+        udp_sink.set_property("host", ip)
+        self._out_pipeline.add(udp_sink)
+        video_rtp_theora_pay.link(udp_sink)
 
-        self.tubes_chan[telepathy.CHANNEL_TYPE_TUBES].connect_to_signal(
-                                            'NewTube', self._new_tube_cb)
 
-        self.tubes_chan[telepathy.CHANNEL_TYPE_TUBES].ListTubes(
-            reply_handler=self._list_tubes_reply_cb,
-            error_handler=self._list_tubes_error_cb)
+        ## On other side of pipeline. connect tee to ximagesink
+        # Queue element to receive video from tee
+        video_queue = Gst.ElementFactory.make("queue", None)
+        self._out_pipeline.add(video_queue)
+        video_tee.link(video_queue)
 
-        # Register budy join/leave
-        self.__activity._shared_activity.connect('buddy-joined',
-                                                self._buddy_joined_cb)
-        self.__activity._shared_activity.connect('buddy-left',
-                                                self._buddy_left_cb)
+        # Change colorspace for ximagesink
+        video_videoconvert = Gst.ElementFactory.make("videoconvert", None)
+        self._out_pipeline.add(video_videoconvert)
+        video_queue.link(video_videoconvert)
 
-    def _list_tubes_reply_cb(self, tubes):
-        """
-        Loops through tube list and passes it to _new_tube_cb
-        """
-        for tube_info in tubes:
-            self._new_tube_cb(*tube_info)
+        # Send to ximagesink
+        ximage_sink = Gst.ElementFactory.make("ximagesink", None)
+        self._out_pipeline.add(ximage_sink)
+        video_videoconvert.link(ximage_sink)
 
-    def _list_tubes_error_cb(self, e):
-        self.__activity._alert('ListTubes() failed: %s' % e)
+        # Connect to pipeline bus for signals.
+        bus = self._out_pipeline.get_bus()
+        bus.add_signal_watch()
+        bus.enable_sync_message_emission()
 
-    def _new_tube_cb(self, id, initiator, type, service, params, state):
+        def on_message(bus, message):
+            """
+            This method handles errors on the video bus and then stops
+            the pipeline.
+            """
+            t = message.type
+            if t == Gst.MESSAGE_EOS:
+                self._out_pipeline.set_state(Gst.State.NULL)
+            elif t == Gst.MESSAGE_ERROR:
+                err, debug = message.parse_error()
+                print "Error: %s" % err, debug
+                self._out_pipeline.set_state(Gst.State.NULL)
 
-        if (type == telepathy.TUBE_TYPE_DBUS and service == SERVICE):
-            if state == telepathy.TUBE_STATE_LOCAL_PENDING:
-                self.tubes_chan[
-                    telepathy.CHANNEL_TYPE_TUBES].AcceptDBusTube(id)
+        def on_sync_message(bus, message):
+            if message.structure is None:
+                return
 
-            # Create Tube Connection
-            tube_conn = TubeConnection(self.conn,
-                self.tubes_chan[telepathy.CHANNEL_TYPE_TUBES], id,
-                group_iface=self.tubes_chan[telepathy.CHANNEL_INTERFACE_GROUP])
+            if message.structure.get_name() == "prepare-xwindow-id":
+                # Assign the viewport
+                self.link_function(message.src, 'PREVIEW')
 
-            self.controlTube = TubeSpeak(tube_conn, self.__activity.net_cb)
+        bus.connect("message", on_message)
+        bus.connect("sync-message::element", on_sync_message)
 
-        #elif (type == telepathy.TUBE_TYPE_STREAM and
-        #service == DIST_STREAM_SERVICE):
-        #        # Data tube, store for later
-        #        _logger.debug("New data tube added")
-        #        self.unused_download_tubes.add(id)
+    
 
-    def get_tube_handle(self):
-        if self.controlTube:
-            return self.controlTube
+    #Incoming Pipeline
+    def build_incoming_pipeline(self):
+        if self._in_pipeline != None:
+            print "WARNING: incoming pipeline exists"
+            return
+
+        # Set up the gstreamer pipeline
+        print "Building Incoming Video Pipeline"
+
+        # Pipeline:
+        # udpsrc -> rtptheoradepay -> theoradec -> ffmpegcolorspace -> xvimagesink
+        self._in_pipeline = Gst.Pipeline()
+
+        # Video Source
+        video_src = Gst.ElementFactory.make("udpsrc", None)
+        self._in_pipeline.add(video_src)
+
+        # RTP Theora Depay
+        video_rtp_theora_depay = Gst.ElementFactory.make("rtptheoradepay", None)
+        self._in_pipeline.add(video_rtp_theora_depay)
+        video_src.link(video_rtp_theora_depay)
+
+        # Video decode
+        video_decode = Gst.ElementFactory.make("theoradec", None)
+        self._in_pipeline.add(video_decode)
+        video_rtp_theora_depay.link(video_decode)
+
+        # Change colorspace for xvimagesink
+        video_colorspace = Gst.ElementFactory.make("ffmpegcolorspace", None)
+        self._in_pipeline.add(video_colorspace)
+        video_decode.link(video_colorspace)
+
+        # Send video to xviamgesink
+        xvimage_sink = Gst.ElementFactory.make("xvimagesink", None)
+        xvimage_sink.set_property("force-aspect-ratio", True)
+        self._in_pipeline.add(xvimage_sink)
+        video_colorspace.link(xvimage_sink)
+
+        # Connect to pipeline bus for signals.
+        bus = self._in_pipeline.get_bus()
+        bus.add_signal_watch()
+        bus.enable_sync_message_emission()
+
+        def on_message(bus, message):
+            """
+            This method handles errors on the video bus and then stops
+            the pipeline.
+            """
+            t = message.type
+            if t == Gst.MESSAGE_EOS:
+                self._in_pipeline.set_state(Gst.State.NULL)
+            elif t == Gst.MESSAGE_ERROR:
+                err, debug = message.parse_error()
+                print "Error: %s" % err, debug
+                self._in_pipeline.set_state(Gst.State.NULL)
+
+        def on_sync_message(bus, message):
+            if message.structure is None:
+                return
+
+            if message.structure.get_name() == "prepare-xwindow-id":
+                # Assign the viewport
+                self.link_function(message.src, 'MAIN')
+
+        bus.connect("message", on_message)
+        bus.connect("sync-message::element", on_sync_message)
+
+    def start_stop_outgoing_pipeline(self, start=True):
+        if self._out_pipeline != None:
+            if start:
+                print "Setting Outgoing Pipeline state: STATE_PLAYING"
+                self._out_pipeline.set_state(Gst.State.PLAYING)
+            else:
+                print "Setting Outgoing Pipeline state: STATE_NULL"
+                self._out_pipeline.set_state(Gst.State.NULL)
+
+    def start_stop_incoming_pipeline(self, start=True):
+        if self._in_pipeline != None:
+            if start:
+                print "Setting Incoming Pipeline state: STATE_PLAYING"
+                self._in_pipeline.set_state(Gst.State.PLAYING)
+            else:
+                print "Setting Incoming Pipeline state: STATE_NULL"
+                self._in_pipeline.set_state(Gst.State.NULL)
