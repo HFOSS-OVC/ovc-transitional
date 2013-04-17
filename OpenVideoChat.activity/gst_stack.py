@@ -125,9 +125,9 @@ class GSTStack:
             the pipeline.
             """
             t = message.type
-            if t == Gst.MESSAGE_EOS:
+            if t == Gst.MessageType.EOS:
                 self._out_pipeline.set_state(Gst.State.NULL)
-            elif t == Gst.MESSAGE_ERROR:
+            elif t == Gst.MessageType.ERROR:
                 err, debug = message.parse_error()
                 print "Error: %s" % err, debug
                 self._out_pipeline.set_state(Gst.State.NULL)
@@ -194,9 +194,9 @@ class GSTStack:
             the pipeline.
             """
             t = message.type
-            if t == Gst.MESSAGE_EOS:
+            if t == Gst.MessageType.EOS:
                 self._in_pipeline.set_state(Gst.State.NULL)
-            elif t == Gst.MESSAGE_ERROR:
+            elif t == Gst.MessageType.ERROR:
                 err, debug = message.parse_error()
                 print "Error: %s" % err, debug
                 self._in_pipeline.set_state(Gst.State.NULL)
