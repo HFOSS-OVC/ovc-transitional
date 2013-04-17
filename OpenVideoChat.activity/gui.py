@@ -36,6 +36,11 @@ from sugar3.graphics.toolbarbox import ToolbarButton
 # from sugar.activity.activity import ActivityToolbox
 # from sugar.graphics.toolbutton import ToolButton
 
+# Constants
+MAX_MESSAGE_SIZE = 200
+MIN_CHAT_HEIGHT = 180
+
+
 class Gui(Gtk.Box):
     def __init__(self, activity):
         Gtk.Box.__init__(self)
@@ -48,17 +53,13 @@ class Gui(Gtk.Box):
 
         # Add Video & Chatbox Containers
         self.pack_start(self.build_videobox(), True, True, 0)
-        self.pack_start(self.build_chatbox(), True, True, 0)
+        self.pack_start(self.build_chatbox(), False, False, 0)
 
         # Append Toolbar
         self.activity.set_toolbar_box(self.build_toolbar())
 
         # Display GUI
         self.show_all()
-
-        # Fix scroll_to_iter & placement of this code
-        # Scroll to bottom
-        # self.text_view.scroll_to_iter(self.chat_text.get_end_iter(), 0, False, 0.5, 0.5)
 
     def build_videobox(self):
         # Prepare Video Display
@@ -71,43 +72,42 @@ class Gui(Gtk.Box):
         mov_box.pack_start(self.movie_window, True, True, 0)
         mov_box.pack_start(self.movie_window_preview, True, True, 0)
 
+        # Return Main Container
         return mov_box
 
     def build_chatbox(self):
-        # Prepare Chat Entry Area
+        # Prepare History Display Box
         self.chat_text = Gtk.TextBuffer()
         self.text_view = Gtk.TextView()
         self.text_view.set_buffer(self.chat_text)
         self.text_view.set_editable(False)
         self.text_view.set_cursor_visible(False)
+        self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
 
-        # Not sure about sizing
-        # self.text_view.set_size_request(-1, 180)
-
-        # Prepare History Storage
+        # Prepare Scrollable History Container
         chat_history = Gtk.ScrolledWindow()
         chat_history.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        chat_history.set_min_content_height(MIN_CHAT_HEIGHT)
         chat_history.add(self.text_view)
 
         # Send button to complete feel of a chat program
         self.chat_entry = Gtk.Entry()
+        self.chat_entry.set_max_length(MAX_MESSAGE_SIZE)
         self.chat_entry.connect("activate", self.send_chat)
         send_button = Gtk.Button(_("Send"))
         send_button.connect("clicked", self.send_chat)
 
-        # Still not sure about sizing (but the send button should be small)
-        # send_button.set_size_request(40, -1)
-
        # Wrap button and entry in horizontal oriented box so they are on the same line
         chat_entry_box = Gtk.Box(True, 8)
+        chat_entry_box.set_homogeneous(False)
         chat_entry_box.set_orientation(Gtk.Orientation.HORIZONTAL)
         chat_entry_box.pack_start(self.chat_entry, True, True, 0)
-        chat_entry_box.pack_end(send_button, False, True, 0)
+        chat_entry_box.pack_end(send_button, False, False, 0)
 
         # Create box for all chat components & add history & input
         chat_holder = Gtk.Box()
         chat_holder.set_orientation(Gtk.Orientation.VERTICAL)
-        chat_holder.pack_start(chat_history, True, True, 0)
+        chat_holder.pack_start(chat_history, False, True, 0)
         chat_holder.pack_start(chat_entry_box, False, True, 0)
 
         # Chat expander allows visibly toggle-able container for all chat components
@@ -128,9 +128,12 @@ class Gui(Gtk.Box):
 
         # Create Settings Drop-Down
         settings_toolbar = self.build_settings_toolbar()
+        # settings_toolbar_button = ToolbarButton(
+        #         page=settings_toolbar,
+        #         icon_name="view-source")
         settings_toolbar_button = ToolbarButton(
                 page=settings_toolbar,
-                icon_name="view-source")
+                icon_name="preferences-system")
         toolbar_box.toolbar.insert(settings_toolbar_button, -1)
 
         # Push stop button to far right
@@ -150,28 +153,57 @@ class Gui(Gtk.Box):
         # Create Settings Menu
         settings_toolbar = Gtk.Toolbar()
 
+        # Storage for Settings Buttons
+        self.settings_buttons = {}
+
         # Add Hacky-Reload Button (For now)
-        reload_video = ToolButton("view-refresh")
-        reload_video.set_tooltip_text(_("Reload Screen"))
-        reload_video.connect("clicked", self.force_redraw, None)
-        settings_toolbar.insert(reload_video, -1)
+        self.settings_buttons["reload_video"] = ToolButton("view-refresh")
+        self.settings_buttons["reload_video"].set_tooltip_text(_("Reload Video"))
+        self.settings_buttons["reload_video"].connect("clicked", self.force_redraw, None)
+        settings_toolbar.insert(self.settings_buttons["reload_video"], -1)
+
+
+        # LOGIC BELOW REQUIRES SHARED ACTIVITY CHECK FOR FINAL VERSION
+
+        # Video Toggle Button
+        # self.settings_buttons["toggle_video"] = Gtk.ToggleButton("activity-stop")
+        # self.settings_buttons["toggle_video"].set_tooltip_text(_("Stop Video"))
+        # self.settings_buttons["toggle_video"].connect("toggled", self.toggle_video)
+        # settings_toolbar.insert(self.settings_buttons["toggle_video"], -1)
+
 
         # Display & Return Settings Menu
         settings_toolbar.show_all()
         return settings_toolbar
 
+    def toggle_video(self):
+        # if self.settings_buttons["toggle_video"].get_active():
+        #     # Stop Video Playback
+        #     self.settings_buttons["toggle_video"].set_icon("activity-start")
+        #     self.settings_buttons["toggle_video"].set_tooltip_text(_("Start Video"))
+        # else:
+        #     # Start Video Playback
+        #     self.settings_buttons["toggle_video"] = ToggleButton("activity-stop")
+        #     self.settings_buttons["toggle_video"].set_tooltip_text(_("Stop Video"))
+        return False
+
+    def toggle_audio(self):
+        return False
+
     def get_history(self):
         return self.chat_text.get_text(
                 self.chat_text.get_start_iter(),
-                self.chat_text.get_end_iter())
+                self.chat_text.get_end_iter(),
+                True)
 
-    def add_chat_text(self, text):
-        self.chat_text.insert(self.chat_text.get_end_iter(), "%s\n" % text)
-        self.text_view.scroll_to_iter(self.chat_text.get_end_iter(), 0.1)
+    def add_chat_text(self, message):
+        self.chat_text.insert(self.chat_text.get_end_iter(), "%s\n" % message, -1)
+        self.text_view.scroll_to_iter(self.chat_text.get_end_iter(), 0.1, False, 0.0, 0.0)
 
     def send_chat(self, w):
-        if self.chat_entry.get_text != "":
-            self.activity.send_chat_text(self.chat_entry.get_text())
+        if (self.chat_entry.get_text() != ""):
+            self.add_chat_text(self.chat_entry.get_text())# Temporary for Testing Non-Networked
+            # self.activity.send_chat_text(self.chat_entry.get_text())
             self.chat_entry.set_text("")
 
     def force_redraw(self, widget, value=None):
