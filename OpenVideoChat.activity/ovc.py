@@ -36,7 +36,7 @@ from sugar3 import profile
 from gui import Gui
 from sugar_network_stack import SugarNetworkStack
 from gst_stack import GSTStack
-print "Finished Imports"
+
 
 class OpenVideoChatActivity(Activity):
 
@@ -46,48 +46,43 @@ class OpenVideoChatActivity(Activity):
         # GObject is used for timeing (will be removed when rtp is implemented)
         GObject.threads_init()
 
-        # Set if they started the activity
-        self.isServer = not self.shared_activity
-
-        # Let sugar know we only want a 1 to 1 share (limit to 2 people)
-        # Note this is not enforced by sugar yet :(
+        # Self-Enforced max_participants
         self.max_participants = 2
 
-        #FIXME: This is a hack to only allow our ip to be sent once.
-        #AKA disables others from double streaming
-        if self.isServer:
-            # server will send out ip twice, first when joinning empty channel
-            # second when the user joins
-            self.sent_ip = 2
-        else:
-            self.sent_ip = 1
 
+        # Adjust Design of when to send ip based on shared_activity
+        # Prevents double-streaming
+        if self.shared_activity:
+            self.sent_ip = 1
+        else:
+            self.sent_ip = 2
+
+        ################
         # INITIALIZE GUI
         ################
         self.set_title('OpenVideoChat')
 
+        ###########
         # Setup Gui
         ###########
-        print "going into gui"
         self.gui = Gui(self)
-        print "1"
         self.gui.show()
-        print "2"
         self.set_canvas(self.gui)
-        print "3"
+
+        #####################
         # Setup Network Stack
         #####################
         self.netstack = SugarNetworkStack(self)
         self._sh_hnd = self.connect('shared', self.netstack.shared_cb)
         self._jo_hnd = self.connect('joined', self.netstack.joined_cb)
-        print "4"
+
+        #################
         # Setup Pipeline
         #################
+        print "Setting up GStreamer"
         self.gststack = GSTStack(self.gui.send_video_to_screen)
         self.gststack.build_incoming_pipeline()
         GObject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
-
-        print "Activity Started"
 
     def can_close(self):
         print "Closing, stopping pipelines"
