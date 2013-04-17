@@ -203,7 +203,7 @@ class GSTStack:
         # Video Source
         video_src = Gst.ElementFactory.make("udpsrc", None)
         video_src.set_property("port", 5004)
-        video_in_bin.add(self, video_src)
+        video_in_bin.add(video_in_bin, video_src)
 
         # RTP Theora Depay
         video_rtp_theora_depay = Gst.ElementFactory.make("rtptheoradepay", None)
@@ -234,7 +234,7 @@ class GSTStack:
         # Audio Source
         audio_src = Gst.ElementFactory.make("udpsrc", None)
         audio_src.set_property("port", 5005)
-        audio_in_bin.add(self, audio_src)
+        audio_in_bin.add(audio_in_bin, audio_src)
 
         # RTP Opus Depay
         audio_rtp = Gst.ElementFactory.make("rtpopusdepay", None)
