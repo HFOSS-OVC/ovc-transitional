@@ -110,7 +110,7 @@ class OpenVideoChatActivity(Activity):
         # new chat message
         if src == "chat":
             message, sender = args
-            self.gui.add_chat_text(message)
+            self.gui.receive_message(message)
 
         # join request
         elif src == "join":
@@ -181,10 +181,10 @@ class OpenVideoChatActivity(Activity):
                             streaming"
 
         elif src == "buddy_add":
-            self.gui.add_chat_text(_("%s has joined the chat") % args)
+            self.gui.receive_message(_("%s has joined the chat") % args)
 
         elif src == "buddy_rem":
-            self.gui.add_chat_text(_("%s has left the chat") % args)
+            self.gui.receive_message(_("%s has left the chat") % args)
 
     #
     # Send new chat message
@@ -212,7 +212,5 @@ class OpenVideoChatActivity(Activity):
 
     def read_file(self, file_path):
         file = open(file_path, 'r')
-
-        self.gui.add_chat_text(file.read())
-
+        self.gui.receive_message(file.read())
         file.close()
