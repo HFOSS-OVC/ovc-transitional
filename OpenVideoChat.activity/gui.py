@@ -49,9 +49,9 @@ class Gui(Gtk.Grid):
         # Set Activity
         self.activity = activity
 
-        # Add Video & Chatbox Containers
-        self.add(self.build_videobox())
-        self.attach(self.build_chatbox(), 0, 1, 1, 1)
+        # Add Video & Chat Containers
+        self.add(self.build_videogrid())
+        self.attach(self.build_chatgrid(), 0, 1, 1, 1)
 
         # Append Toolbar
         self.activity.set_toolbar_box(self.build_toolbar())
@@ -59,7 +59,7 @@ class Gui(Gtk.Grid):
         # Display GUI
         self.show_all()
 
-    def build_videobox(self):
+    def build_videogrid(self):
         # Prepare Video Display
         self.movie_window = Gtk.DrawingArea()
         self.movie_window_preview = Gtk.DrawingArea()
@@ -68,27 +68,27 @@ class Gui(Gtk.Grid):
         self.movie_window_preview.set_hexpand(True)
         self.movie_window_preview.set_vexpand(True)
 
-        # # Trying out GtkGrid
-        video_box = Gtk.Grid()
-        video_box.set_column_spacing(6)
-        video_box.add(self.movie_window)
-        video_box.attach_next_to(self.movie_window_preview, self.movie_window, Gtk.PositionType.RIGHT, 1, 1)
+        # Create Grid Container
+        video_grid = Gtk.Grid()
+        video_grid.set_column_spacing(6)
+        video_grid.add(self.movie_window)
+        video_grid.attach_next_to(self.movie_window_preview, self.movie_window, Gtk.PositionType.RIGHT, 1, 1)
 
         # Add a name & apply complex CSS based theming
         provider = Gtk.CssProvider()
         provider.load_from_data("GtkDrawingArea { background: #000000; }")
         # provider.load_from_data(".background { background: #000 }")# Apply to whole window
-        styler = video_box.get_style_context()
+        styler = video_grid.get_style_context()
         styler.add_provider_for_screen(
             Gdk.Screen.get_default(),
             provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         # Return Main Container
-        return video_box
+        return video_grid
 
-    def build_chatbox(self):
-        # Prepare History Display Box
+    def build_chatgrid(self):
+        # Prepare Chat Text Container
         self.chat_text = Gtk.TextBuffer()
         self.text_view = Gtk.TextView()
         self.text_view.set_buffer(self.chat_text)
@@ -96,37 +96,32 @@ class Gui(Gtk.Grid):
         self.text_view.set_cursor_visible(False)
         self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
 
-        # Prepare Scrollable History Container
+        # Prepare Scrollable History
         chat_history = Gtk.ScrolledWindow()
         chat_history.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         chat_history.set_min_content_height(MIN_CHAT_HEIGHT)
         chat_history.add(self.text_view)
+        chat_history.set_hexpand(True)
 
         # Send button to complete feel of a chat program
         self.chat_entry = Gtk.Entry()
         self.chat_entry.set_max_length(MAX_MESSAGE_SIZE)
         self.chat_entry.connect("activate", self.send_message)
+        self.chat_entry.set_hexpand(True)
         send_button = Gtk.Button(_("Send"))
         send_button.connect("clicked", self.send_message)
 
-       # Wrap button and entry in horizontal oriented box so they are on the same line
-        chat_entry_box = Gtk.Box(True, 8)
-        chat_entry_box.set_homogeneous(False)
-        chat_entry_box.set_orientation(Gtk.Orientation.HORIZONTAL)
-        chat_entry_box.pack_start(self.chat_entry, True, True, 0)
-        chat_entry_box.pack_end(send_button, False, False, 0)
-
-        # Create box for all chat components & add history & input
-        chat_holder = Gtk.Box()
-        chat_holder.set_orientation(Gtk.Orientation.VERTICAL)
-        chat_holder.pack_start(chat_history, False, True, 0)
-        chat_holder.pack_start(chat_entry_box, False, True, 0)
+        # Wrap expanded Entry and normal-sized Send buttons into Grid Row
+        chat_grid = Gtk.Grid()
+        chat_grid.attach(chat_history, 0, 0, 2, 1)
+        chat_grid.attach(self.chat_entry, 0, 1, 1, 1)
+        chat_grid.attach(send_button, 1, 1, 1, 1)
 
         # Chat expander allows visibly toggle-able container for all chat components
         chat_expander = Gtk.Expander()
         chat_expander.set_label(_("Chat"))
         chat_expander.set_expanded(True)
-        chat_expander.add(chat_holder)
+        chat_expander.add(chat_grid)
 
         # Return entire expander
         return chat_expander
