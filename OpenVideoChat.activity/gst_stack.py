@@ -229,12 +229,12 @@ class GSTStack:
 
 
         # Audio Bin
-        audio_out_bin = Gst.Bin.new
+        audio_out_bin = Gst.Bin
 
         # Audio Source
         audio_src = Gst.ElementFactory.make("udpsrc", None)
         audio_src.set_property("port", 5005)
-        audio_in_bin.add(audio_src)
+        audio_in_bin.add(self, audio_src)
 
         # RTP Opus Depay
         audio_rtp = Gst.ElementFactory.make("rtpopusdepay", None)
