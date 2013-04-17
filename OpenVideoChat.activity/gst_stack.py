@@ -174,7 +174,7 @@ class GSTStack:
 
         # Change colorspace for xvimagesink
         video_videoconvert = Gst.ElementFactory.make("videoconvert", None)
-        self._in_pipeline.add(video_colorspace)
+        self._in_pipeline.add(video_videoconvert)
         video_decode.link(video_videoconvert)
 
         # Send video to xviamgesink
