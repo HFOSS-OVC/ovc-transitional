@@ -39,6 +39,7 @@ CAPS = "video/x-raw-yuv,width=320,height=240,framerate=15/1"
 class GSTStack:
 
     def __init__(self, link_function):
+        Gst.init(None)
         self._out_pipeline = None
         self._in_pipeline = None
 
@@ -172,15 +173,15 @@ class GSTStack:
         video_rtp_theora_depay.link(video_decode)
 
         # Change colorspace for xvimagesink
-        video_colorspace = Gst.ElementFactory.make("ffmpegcolorspace", None)
+        video_videoconvert = Gst.ElementFactory.make("videoconvert", None)
         self._in_pipeline.add(video_colorspace)
-        video_decode.link(video_colorspace)
+        video_decode.link(video_videoconvert)
 
         # Send video to xviamgesink
         xvimage_sink = Gst.ElementFactory.make("xvimagesink", None)
         xvimage_sink.set_property("force-aspect-ratio", True)
         self._in_pipeline.add(xvimage_sink)
-        video_colorspace.link(xvimage_sink)
+        video_videoconvert.link(xvimage_sink)
 
         # Connect to pipeline bus for signals.
         bus = self._in_pipeline.get_bus()
