@@ -61,7 +61,7 @@ class GSTStack:
 
 
         #Video Bin
-        video_out_bin = Gst.Bin.new
+        video_out_bin = Gst.Bin
            
         # Video Source
         video_src = Gst.ElementFactory.make("autovideosrc", None)
@@ -124,7 +124,7 @@ class GSTStack:
 
 
         # Audio Bin
-        audio_out_bin = Gst.Bin.new
+        audio_out_bin = Gst.Bin
             
         # Audio Source
         audio_src = Gst.ElementFactory.make("autoaudiosrc", None)
@@ -198,7 +198,7 @@ class GSTStack:
 
 
         #Video Bin
-        video_in_bin = Gst.Bin.new
+        video_in_bin = Gst.Bin
            
         # Video Source
         video_src = Gst.ElementFactory.make("udpsrc", None)
