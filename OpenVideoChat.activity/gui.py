@@ -26,11 +26,12 @@
 
 
 # External Imports
-import gi
 from gi.repository import Gtk
-from gettext import gettext as _#For Translations
+from gettext import gettext as _
+from sugar3.activity.widgets import StopButton
 from sugar3.graphics.toolbutton import ToolButton
 from sugar3.graphics.toolbarbox import ToolbarBox
+from sugar3.activity.widgets import ActivityButton
 from sugar3.graphics.toolbarbox import ToolbarButton
 # from sugar.activity.activity import ActivityToolbox
 # from sugar.graphics.toolbutton import ToolButton
@@ -47,15 +48,15 @@ class Gui(Gtk.Box):
 
         # Add Video & Chatbox Containers
         self.pack_start(self.build_videobox(), True, True, 0)
-        # self.pack_start(self.build_chatbox(), True, True, 0)
+        self.pack_start(self.build_chatbox(), True, True, 0)
 
         # Append Toolbar
-
+        self.activity.set_toolbar_box(self.build_toolbar())
 
         # Display GUI
         self.show_all()
 
-        # Determine why this goes here?
+        # Fix scroll_to_iter & placement of this code
         # Scroll to bottom
         # self.text_view.scroll_to_iter(self.chat_text.get_end_iter(), 0, False, 0.5, 0.5)
 
@@ -73,74 +74,96 @@ class Gui(Gtk.Box):
         return mov_box
 
     def build_chatbox(self):
+        # Prepare Chat Entry Area
+        self.chat_text = Gtk.TextBuffer()
+        self.text_view = Gtk.TextView()
+        self.text_view.set_buffer(self.chat_text)
+        self.text_view.set_editable(False)
+        self.text_view.set_cursor_visible(False)
 
-       #  # Chat expander allows chat to be hidden/shown
-       #  chat_expander = Gtk.Expander()
-       #  chat_expander.set_label(_("Chat"))
-       #  chat_expander.set_expanded(True)
-       #  self.pack_start(chat_expander, False, True, 0)
+        # Not sure about sizing
+        # self.text_view.set_size_request(-1, 180)
 
-       #  # Create Chat Container
-       #  chat_holder = Gtk.Box()
-       #  chat_holder.set_orientation(Gtk.Orientation.VERTICAL)
-       #  chat_expander.add(chat_holder)
+        # Prepare History Storage
+        chat_history = Gtk.ScrolledWindow()
+        chat_history.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        chat_history.add(self.text_view)
 
-       #  # Prepare History Storage
-       #  chat_history = Gtk.ScrolledWindow()
-       #  chat_history.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        # Send button to complete feel of a chat program
+        self.chat_entry = Gtk.Entry()
+        self.chat_entry.connect("activate", self.send_chat)
+        send_button = Gtk.Button(_("Send"))
+        send_button.connect("clicked", self.send_chat)
 
-       #  # Prepare Chat Entry Area
-       #  self.chat_text = Gtk.TextBuffer()
-       #  self.text_view = Gtk.TextView()
-       #  self.text_view.set_buffer(self.chat_text)
-       #  self.text_view.set_editable(False)
-       #  self.text_view.set_cursor_visible(False)
-       #  self.text_view.set_size_request(-1, 200)
-       #  chat_history.add(self.text_view)
+        # Still not sure about sizing (but the send button should be small)
+        # send_button.set_size_request(40, -1)
 
-       #  # Send button to complete feel of a chat program
-       #  self.chat_entry = Gtk.Entry()
-       #  self.chat_entry.connect("activate", self.send_chat)
-       #  send_but = Gtk.Button(_("Send"))
-       #  send_but.connect("clicked", self.send_chat)
+       # Wrap button and entry in horizontal oriented box so they are on the same line
+        chat_entry_box = Gtk.Box(True, 8)
+        chat_entry_box.set_orientation(Gtk.Orientation.HORIZONTAL)
+        chat_entry_box.pack_start(self.chat_entry, True, True, 0)
+        chat_entry_box.pack_end(send_button, False, True, 0)
 
-       # # Wrap button and entry in hbox so they are on the same line
-       #  chat_entry_hbox = Gtk.Box(True, 8)
-       #  chat_entry_hbox.set_orientation(Gtk.Orientation.HORIZONTAL)
-       #  chat_entry_hbox.pack_start(self.chat_entry, True, True, 0)
-       #  chat_entry_hbox.pack_end(send_but, False, True, 0)
+        # Create box for all chat components & add history & input
+        chat_holder = Gtk.Box()
+        chat_holder.set_orientation(Gtk.Orientation.VERTICAL)
+        chat_holder.pack_start(chat_history, True, True, 0)
+        chat_holder.pack_start(chat_entry_box, False, True, 0)
 
-       #  # Add chat history and entry to expander
-       #  chat_holder.pack_start(chat_history, True, True, 0)
-       #  chat_holder.pack_start(chat_entry_hbox, False, True, 0)
-       return False
+        # Chat expander allows visibly toggle-able container for all chat components
+        chat_expander = Gtk.Expander()
+        chat_expander.set_label(_("Chat"))
+        chat_expander.set_expanded(True)
+        chat_expander.add(chat_holder)
+
+        # Return entire expander
+        return chat_expander
 
     def build_toolbar(self):
-        # self.settings_bar = Gtk.Toolbar()
-        # self.settings_buttons = {}
+        # Prepare Primary Toolbar Container
+        toolbar_box = ToolbarBox();
 
-        # # Generate array of menu items
-        # self.settings_buttons['reload_video'] = ToolButton('view-spiral')
-        # self.settings_buttons['reload_video'].set_tooltip(_("Reload Screen"))
-        # self.settings_buttons['reload_video'].connect("clicked", self.force_redraw, None)
-        # self.settings_bar.insert(self.settings_buttons['reload_video'], -1)
+        # Create activity button
+        toolbar_box.toolbar.insert(ActivityButton(self.activity), -1)
 
-        # # Create parent container for settings
-        # self.toolbox = ToolbarBox(self.activity)
-        # self.toolbox.insert(self.settings_bar, -1)
+        # Create Settings Drop-Down
+        settings_toolbar = self.build_settings_toolbar()
+        settings_toolbar_button = ToolbarButton(
+                page=settings_toolbar,
+                icon_name="view-source")
+        toolbar_box.toolbar.insert(settings_toolbar_button, -1)
 
-        # # Not sure what this used to do, maybe it did the above?
-        # # self.toolbox.add_toolbar(
-        # #         _("Settings"),
-        # #         self.settings_bar)
+        # Push stop button to far right
+        separator = Gtk.SeparatorToolItem()
+        separator.props.draw = False
+        separator.set_expand(True)
+        toolbar_box.toolbar.insert(separator, -1)
 
-        # self.activity.set_toolbar_box(self.toolbox)
-        # self.toolbox.show_all()
-        return False
+        # Create stop button
+        toolbar_box.toolbar.insert(StopButton(self.activity), -1)
+
+        # Display all components & Return
+        toolbar_box.show_all()
+        return toolbar_box
+
+    def build_settings_toolbar(self):
+        # Create Settings Menu
+        settings_toolbar = Gtk.Toolbar()
+
+        # Add Hacky-Reload Button (For now)
+        reload_video = ToolButton("view-refresh")
+        reload_video.set_tooltip_text(_("Reload Screen"))
+        reload_video.connect("clicked", self.force_redraw, None)
+        settings_toolbar.insert(reload_video, -1)
+
+        # Display & Return Settings Menu
+        settings_toolbar.show_all()
+        return settings_toolbar
 
     def get_history(self):
-        return self.chat_text.get_text(self.chat_text.get_start_iter(),
-                                        self.chat_text.get_end_iter())
+        return self.chat_text.get_text(
+                self.chat_text.get_start_iter(),
+                self.chat_text.get_end_iter())
 
     def add_chat_text(self, text):
         self.chat_text.insert(self.chat_text.get_end_iter(), "%s\n" % text)
@@ -151,13 +174,13 @@ class Gui(Gtk.Box):
             self.activity.send_chat_text(self.chat_entry.get_text())
             self.chat_entry.set_text("")
 
-    # def force_redraw(self, widget, value=None):
-    #     # Fixme: This should not be required, this is a hack for now until
-    #     # a better solution that works is found
-    #     self.movie_window.hide()
-    #     self.movie_window_preview.hide()
-    #     self.movie_window.show()
-    #     self.movie_window_preview.show()
+    def force_redraw(self, widget, value=None):
+        # Fixme: This should not be required, this is a hack for now until
+        # a better solution that works is found
+        self.movie_window.hide()
+        self.movie_window_preview.hide()
+        self.movie_window.show()
+        self.movie_window_preview.show()
 
     def send_video_to_screen(self, source, screen):
         if screen == 'MAIN':
