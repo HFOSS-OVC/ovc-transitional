@@ -33,7 +33,7 @@ from gi.repository import Gst
 #Internal Imports
 
 #Define the limitations of the device
-CAPS = "video/x-raw-yuv,width=320,height=240,framerate=15/1"
+CAPS = "video/x-raw,width=320,height=240,framerate=15/1"
 
 
 class GSTStack:
@@ -59,60 +59,98 @@ class GSTStack:
         #                     -> queue -> ffmpegcolorspace -> ximagesink
         self._out_pipeline = Gst.Pipeline()
 
-        # Video Source
-        video_src = Gst.ElementFactory.make("v4l2src", None)
-        self._out_pipeline.add(video_src)
 
-        # Video Rate element to allow setting max framerate
-        video_rate = Gst.ElementFactory.make("videorate", None)
-        self._out_pipeline.add(video_rate)
-        video_src.link(video_rate)
+        #Video Bin
+        video_out_bin = Gst.Bin.new
+           
+            # Video Source
+            video_src = Gst.ElementFactory.make("autovideosrc", None)
+            video_out_bin.add(video_src)
 
-        # Add caps to limit rate and size
-        video_caps = Gst.ElementFactory.make("capsfilter", None)
-        video_caps.set_property("caps", Gst.caps_from_string(CAPS))
-        self._out_pipeline.add(video_caps)
-        video_rate.link(video_caps)
+            # Video Rate element to allow setting max framerate
+            video_rate = Gst.ElementFactory.make("videorate", None)
+            video_out_bin.add(video_rate)
+            video_src.link(video_rate)
 
-        #Add tee element
-        video_tee = Gst.ElementFactory.make("tee", None)
-        self._out_pipeline.add(video_tee)
-        video_caps.link(video_tee)
+            # Add caps to limit rate and size
+            video_caps = Gst.ElementFactory.make("capsfilter", None)
+            video_caps.set_property("caps", Gst.caps_from_string(CAPS))
+            video_out_bin.add(video_caps)
+            video_rate.link(video_caps)
 
-        # Add theora Encoder
-        video_enc = Gst.ElementFactory.make("theoraenc", None)
-        video_enc.set_property("bitrate", 50)
-        video_enc.set_property("speed-level", 2)
-        self._out_pipeline.add(video_enc)
-        video_tee.link(video_enc)
+            #Add tee element
+            video_tee = Gst.ElementFactory.make("tee", None)
+            video_out_bin.add(video_tee)
+            video_caps.link(video_tee)
 
-        #Add rtptheorapay
-        video_rtp_theora_pay = Gst.ElementFactory.make("rtptheorapay", None)
-        self._out_pipeline.add(video_rtp_theora_pay)
-        video_enc.link(video_rtp_theora_pay)
+            # Add theora Encoder
+            video_enc = Gst.ElementFactory.make("theoraenc", None)
+            video_enc.set_property("bitrate", 50)
+            video_enc.set_property("speed-level", 2)
+            video_out_bin.add(video_enc)
+            video_tee.link(video_enc)
 
-        #Add udpsink
-        udp_sink = Gst.ElementFactory.make("udpsink", None)
-        udp_sink.set_property("host", ip)
-        self._out_pipeline.add(udp_sink)
-        video_rtp_theora_pay.link(udp_sink)
+            #Add rtptheorapay
+            video_rtp_theora_pay = Gst.ElementFactory.make("rtptheorapay", None)
+            video_out_bin.add(video_rtp_theora_pay)
+            video_enc.link(video_rtp_theora_pay)
+
+            #Add udpsink
+            udp_sink = Gst.ElementFactory.make("udpsink", None)
+            udp_sink.set_property("host", ip)
+            udp_sink.set_property("port", 5004)
+            video_out_bin.add(udp_sink)
+            video_rtp_theora_pay.link(udp_sink)
 
 
-        ## On other side of pipeline. connect tee to ximagesink
-        # Queue element to receive video from tee
-        video_queue = Gst.ElementFactory.make("queue", None)
-        self._out_pipeline.add(video_queue)
-        video_tee.link(video_queue)
+            ## On other side of pipeline. connect tee to ximagesink
+            # Queue element to receive video from tee
+            video_queue = Gst.ElementFactory.make("queue", None)
+            video_out_bin.add(video_queue)
+            video_tee.link(video_queue)
 
-        # Change colorspace for ximagesink
-        video_videoconvert = Gst.ElementFactory.make("videoconvert", None)
-        self._out_pipeline.add(video_videoconvert)
-        video_queue.link(video_videoconvert)
+            # Change colorspace for ximagesink
+            video_convert = Gst.ElementFactory.make("videoconvert", None)
+            video_out_bin.add(video_convert)
+            video_queue.link(video_convert)
 
-        # Send to ximagesink
-        ximage_sink = Gst.ElementFactory.make("ximagesink", None)
-        self._out_pipeline.add(ximage_sink)
-        video_videoconvert.link(ximage_sink)
+            # Send to ximagesink
+            ximage_sink = Gst.ElementFactory.make("ximagesink", None)
+            video_out_bin.add(ximage_sink)
+            video_convert.link(ximage_sink)
+
+
+
+
+
+        # Audio Bin
+        audio_out_bin = Gst.Bin.new
+            
+            # Audio Source
+            audio_src = Gst.ElementFactory.make("autoaudiosrc", None)
+            audio_out_bin.add(audio_src)
+
+            # Opus Audio Encoding
+            audio_enc = Gst.ElementFactory.make("opusenc", None)
+            audio_out_bin.add(audio_enc)
+            audio_src.link(audio_enc)
+
+            # RTP Opus Pay
+            audio_rtp = Gst.ElementFactory.make("rtpopuspay", None)
+            audio_out_bin.add(audio_rtp)
+            audio_enc.link(audio_rtp)
+
+            # Audio UDP Sink
+            udp_sink = Gst.ElementFactory.make("udpsink", None)
+            udp_sink.set_property("host", ip)
+            udp_sink.set_property("port", 5005)
+            audio_out_bin.add(udp_sink)
+            audio_rtp.link(udp_sink)
+
+
+        self._out_pipeline.add(video_out_bin)
+        self._out_pipeline.add(audio_out_bin)
+
 
         # Connect to pipeline bus for signals.
         bus = self._out_pipeline.get_bus()
@@ -158,30 +196,64 @@ class GSTStack:
         # udpsrc -> rtptheoradepay -> theoradec -> ffmpegcolorspace -> xvimagesink
         self._in_pipeline = Gst.Pipeline()
 
-        # Video Source
-        video_src = Gst.ElementFactory.make("udpsrc", None)
-        self._in_pipeline.add(video_src)
 
-        # RTP Theora Depay
-        video_rtp_theora_depay = Gst.ElementFactory.make("rtptheoradepay", None)
-        self._in_pipeline.add(video_rtp_theora_depay)
-        video_src.link(video_rtp_theora_depay)
+        #Video Bin
+        video_in_bin = Gst.Bin.new
+           
+            # Video Source
+            video_src = Gst.ElementFactory.make("udpsrc", None)
+            video_src.set_property("port", 5004)
+            video_in_bin.add(video_src)
 
-        # Video decode
-        video_decode = Gst.ElementFactory.make("theoradec", None)
-        self._in_pipeline.add(video_decode)
-        video_rtp_theora_depay.link(video_decode)
+            # RTP Theora Depay
+            video_rtp_theora_depay = Gst.ElementFactory.make("rtptheoradepay", None)
+            self._in_pipeline.add(video_rtp_theora_depay)
+            video_in_bin.add(video_rtp_theora_depay)
+            video_src.link(video_rtp_theora_depay)
 
-        # Change colorspace for xvimagesink
-        video_videoconvert = Gst.ElementFactory.make("videoconvert", None)
-        self._in_pipeline.add(video_videoconvert)
-        video_decode.link(video_videoconvert)
+            # Video decode
+            video_decode = Gst.ElementFactory.make("theoradec", None)
+            video_in_bin.add(video_decode)
+            video_rtp_theora_depay.link(video_decode)
 
-        # Send video to xviamgesink
-        xvimage_sink = Gst.ElementFactory.make("xvimagesink", None)
-        xvimage_sink.set_property("force-aspect-ratio", True)
-        self._in_pipeline.add(xvimage_sink)
-        video_videoconvert.link(xvimage_sink)
+            # Change colorspace for xvimagesink
+            video_convert = Gst.ElementFactory.make("videoconvert", None)
+            video_in_bin.add(video_convert)
+            video_decode.link(video_convert)
+
+            # Send video to xviamgesink
+            xvimage_sink = Gst.ElementFactory.make("autovideosink", None)
+            xvimage_sink.set_property("force-aspect-ratio", True)
+            self._in_pipeline.add(xvimage_sink)
+            video_convert.link(xvimage_sink)
+
+
+        # Audio Bin
+        audio_out_bin = Gst.Bin.new
+
+            # Audio Source
+            audio_src = Gst.ElementFactory.make("udpsrc", None)
+            audio_src.set_property("port", 5005)
+            audio_in_bin.add(audio_src)
+
+            # RTP Opus Depay
+            audio_rtp = Gst.ElementFactory.make("rtpopusdepay", None)
+            audio_in_bin.add(audio_rtp)
+            audio_src.link(audio_rtp)
+
+            # Opus Audio Decoding
+            audio_dec = Gst.ElementFactory.make("opusdec", None)
+            audio_in_bin.add(audio_enc)
+            audio_rtp.link(audio_enc)
+
+            # Audio Sink
+            audio_sink = Gst.ElementFactory.make("autoaudiosink", None)
+            audio_in_bin.add(audio_sink)
+            audio_dec.link(audio_sink)
+
+
+        self._in_pipeline.add(video_in_bin)
+        self._in_pipeline.add(audio_in_bin)
 
         # Connect to pipeline bus for signals.
         bus = self._in_pipeline.get_bus()
