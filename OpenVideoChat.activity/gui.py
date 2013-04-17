@@ -27,6 +27,7 @@
 
 # External Imports
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gettext import gettext as _
 from sugar3.activity.widgets import StopButton
 from sugar3.graphics.toolbutton import ToolButton
@@ -67,13 +68,23 @@ class Gui(Gtk.Box):
         self.movie_window_preview = Gtk.DrawingArea()
 
         # Prepare Video Container
-        mov_box = Gtk.Box(True, 8)
-        mov_box.set_orientation(Gtk.Orientation.VERTICAL)
-        mov_box.pack_start(self.movie_window, True, True, 0)
-        mov_box.pack_start(self.movie_window_preview, True, True, 0)
+        video_box = Gtk.Box(True, 8)
+        video_box.set_orientation(Gtk.Orientation.HORIZONTAL)
+        video_box.pack_start(self.movie_window, True, True, 0)
+        video_box.pack_start(self.movie_window_preview, True, True, 0)
+
+        # Add a name & apply complex CSS based theming
+        provider = Gtk.CssProvider()
+        provider.load_from_data("GtkDrawingArea { background: #000000; }")
+        # provider.load_from_data(".background { background: #000 }")# Apply to whole window
+        styler = video_box.get_style_context()
+        styler.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         # Return Main Container
-        return mov_box
+        return video_box
 
     def build_chatbox(self):
         # Prepare History Display Box
@@ -93,9 +104,9 @@ class Gui(Gtk.Box):
         # Send button to complete feel of a chat program
         self.chat_entry = Gtk.Entry()
         self.chat_entry.set_max_length(MAX_MESSAGE_SIZE)
-        self.chat_entry.connect("activate", self.send_chat)
+        self.chat_entry.connect("activate", self.send_message)
         send_button = Gtk.Button(_("Send"))
-        send_button.connect("clicked", self.send_chat)
+        send_button.connect("clicked", self.send_message)
 
        # Wrap button and entry in horizontal oriented box so they are on the same line
         chat_entry_box = Gtk.Box(True, 8)
@@ -196,14 +207,14 @@ class Gui(Gtk.Box):
                 self.chat_text.get_end_iter(),
                 True)
 
-    def add_chat_text(self, message):
+    def receive_message(self, message):
         self.chat_text.insert(self.chat_text.get_end_iter(), "%s\n" % message, -1)
         self.text_view.scroll_to_iter(self.chat_text.get_end_iter(), 0.1, False, 0.0, 0.0)
 
-    def send_chat(self, w):
+    def send_message(self, trigger):
         if (self.chat_entry.get_text() != ""):
-            self.add_chat_text(self.chat_entry.get_text())# Temporary for Testing Non-Networked
-            # self.activity.send_chat_text(self.chat_entry.get_text())
+            self.receive_message(self.chat_entry.get_text())# Temporary for Testing Non-Networked
+            # self.activity.send_message(self.chat_entry.get_text())
             self.chat_entry.set_text("")
 
     def force_redraw(self, widget, value=None):
