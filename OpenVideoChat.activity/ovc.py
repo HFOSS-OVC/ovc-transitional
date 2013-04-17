@@ -21,6 +21,7 @@
 .. moduleauthor:: Fran Rogers <fran@dumetella.net>
 .. moduleauthor:: Remy DeCausemaker <remyd@civx.us>
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
+.. moduleauthor:: Casey DeLorme <cxd4280@rit.edu>
 """
 
 #External Imports
