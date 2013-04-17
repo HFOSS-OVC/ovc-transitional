@@ -42,19 +42,16 @@ MAX_MESSAGE_SIZE = 200
 MIN_CHAT_HEIGHT = 180
 
 
-class Gui(Gtk.Box):
+class Gui(Gtk.Grid):
     def __init__(self, activity):
-        Gtk.Box.__init__(self)
-
-        # Set Orientation
-        self.set_orientation(Gtk.Orientation.VERTICAL)
+        Gtk.Grid.__init__(self)
 
         # Set Activity
         self.activity = activity
 
         # Add Video & Chatbox Containers
-        self.pack_start(self.build_videobox(), True, True, 0)
-        self.pack_start(self.build_chatbox(), False, False, 0)
+        self.add(self.build_videobox())
+        self.attach(self.build_chatbox(), 0, 1, 1, 1)
 
         # Append Toolbar
         self.activity.set_toolbar_box(self.build_toolbar())
@@ -66,12 +63,16 @@ class Gui(Gtk.Box):
         # Prepare Video Display
         self.movie_window = Gtk.DrawingArea()
         self.movie_window_preview = Gtk.DrawingArea()
+        self.movie_window.set_hexpand(True)
+        self.movie_window.set_vexpand(True)
+        self.movie_window_preview.set_hexpand(True)
+        self.movie_window_preview.set_vexpand(True)
 
-        # Prepare Video Container
-        video_box = Gtk.Box(True, 8)
-        video_box.set_orientation(Gtk.Orientation.HORIZONTAL)
-        video_box.pack_start(self.movie_window, True, True, 0)
-        video_box.pack_start(self.movie_window_preview, True, True, 0)
+        # # Trying out GtkGrid
+        video_box = Gtk.Grid()
+        video_box.set_column_spacing(6)
+        video_box.add(self.movie_window)
+        video_box.attach_next_to(self.movie_window_preview, self.movie_window, Gtk.PositionType.RIGHT, 1, 1)
 
         # Add a name & apply complex CSS based theming
         provider = Gtk.CssProvider()
