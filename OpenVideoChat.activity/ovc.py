@@ -25,18 +25,16 @@
 """
 
 #External Imports
-import gi
+from sugar3 import profile
+from gettext import gettext as _
 from gi.repository import GObject
-
-from gettext import gettext as _    #For Translations
 from sugar3.activity.activity import Activity
 from sugar3.graphics.alert import NotifyAlert
-from sugar3 import profile
 
 #Local Imports
 from gui import Gui
-from sugar_network_stack import SugarNetworkStack
 from gst_stack import GSTStack
+from sugar_network_stack import SugarNetworkStack
 
 
 class OpenVideoChatActivity(Activity):
@@ -186,10 +184,7 @@ class OpenVideoChatActivity(Activity):
         elif src == "buddy_rem":
             self.gui.receive_message(_("%s has left the chat") % args)
 
-    #
     # Send new chat message
-    #
-
     def send_chat_text(self, text):
         handle = self.netstack.get_tube_handle()
         prof = profile.get_nick_name()
@@ -197,20 +192,20 @@ class OpenVideoChatActivity(Activity):
         if handle:
             handle.send_chat_text("<%s> %s" % (prof, text))
 
-    #
     # Save Chat Log
-    #
-
     def write_file(self, file_path):
         file = open(file_path, 'w')
         file.write(self.gui.get_history())
         file.close()
 
-    #
     # Load Chat Log
-    #
-
     def read_file(self, file_path):
         file = open(file_path, 'r')
         self.gui.receive_message(file.read())
         file.close()
+
+    def get_stream(self):
+        return RECEIVING_STREAM
+
+    def send_stream(self):
+        self.gui.receive_stream()
