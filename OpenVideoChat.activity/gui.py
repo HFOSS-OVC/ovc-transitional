@@ -75,7 +75,7 @@ class Gui(Gtk.Grid):
         video_grid = Gtk.Grid()
         video_grid.set_column_spacing(6)
         video_grid.add(self.movie_window_preview)
-        video_grid.attach_next_to(self.movie_window, self.movie_window, Gtk.PositionType.RIGHT, 1, 1)
+        video_grid.attach(self.movie_window, 1, 0, 1, 1)
 
         # Add a name & apply complex CSS based theming
         provider = Gtk.CssProvider()

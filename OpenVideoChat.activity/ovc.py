@@ -67,11 +67,7 @@ class OpenVideoChatActivity(Activity):
         # Setup Gui
         ###########
         # Change to:
-        # self.set_canvas(Gui(self))
-        # Modify all gui. references to get_canvas()
-        self.gui = Gui(self)
-        self.gui.show()
-        self.set_canvas(self.gui)
+        self.set_canvas(Gui(self))
 
         #####################
         # Setup Network Stack
@@ -84,7 +80,7 @@ class OpenVideoChatActivity(Activity):
         # Setup Pipeline
         #################
         print "Setting up GStreamer"
-        self.gststack = GSTStack(self.gui.render_preview, self.gui.render_incoming)
+        self.gststack = GSTStack(self.get_canvas().render_preview, self.get_canvas().render_incoming)
         self.gststack.build_incoming_pipeline()
         GObject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
 
@@ -113,7 +109,7 @@ class OpenVideoChatActivity(Activity):
         # new chat message
         if src == "chat":
             message, sender = args
-            self.gui.receive_message(message)
+            self.get_canvas().receive_message(message)
 
         # join request
         elif src == "join":
@@ -184,10 +180,10 @@ class OpenVideoChatActivity(Activity):
                             streaming"
 
         elif src == "buddy_add":
-            self.gui.receive_message(_("%s has joined the chat") % args)
+            self.get_canvas().receive_message(_("%s has joined the chat") % args)
 
         elif src == "buddy_rem":
-            self.gui.receive_message(_("%s has left the chat") % args)
+            self.get_canvas().receive_message(_("%s has left the chat") % args)
 
     # Send new chat message
     def send_message(self, text):
@@ -201,16 +197,16 @@ class OpenVideoChatActivity(Activity):
         return RECEIVING_STREAM
 
     def send_stream(self):
-        self.gui.receive_stream()
+        self.get_canvas().receive_stream()
 
     # Save Chat Log to History
     def write_file(self, file_path):
         file = open(file_path, 'w')
-        file.write(self.gui.get_history())
+        file.write(self.get_canvas().get_history())
         file.close()
 
     # Load Chat Log from History
     def read_file(self, file_path):
         file = open(file_path, 'r')
-        self.gui.receive_message(file.read())
+        self.get_canvas().receive_message(file.read())
         file.close()
