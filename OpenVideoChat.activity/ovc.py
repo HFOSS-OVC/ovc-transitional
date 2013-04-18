@@ -79,22 +79,22 @@ class OpenVideoChatActivity(Activity):
         #####################
         # Setup Network Stack
         #####################
-        # self.netstack = SugarNetworkStack(self)
-        # self._sh_hnd = self.connect('shared', self.netstack.shared_cb)
-        # self._jo_hnd = self.connect('joined', self.netstack.joined_cb)
+        self.netstack = SugarNetworkStack(self)
+        self._sh_hnd = self.connect('shared', self.netstack.shared_cb)
+        self._jo_hnd = self.connect('joined', self.netstack.joined_cb)
 
         #################
         # Setup Pipeline
         #################
-        # print "Setting up GStreamer"
-        # self.gststack = GSTStack(self.gui.send_video_to_screen)
-        # self.gststack.build_incoming_pipeline()
-        # GObject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
+        print "Setting up GStreamer"
+        self.gststack = GSTStack(self.gui.send_video_to_screen)
+        self.gststack.build_incoming_pipeline()
+        GObject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
 
     def can_close(self):
         print "Closing, stopping pipelines"
-        # self.gststack.start_stop_incoming_pipeline(False)
-        # self.gststack.start_stop_outgoing_pipeline(False)
+        self.gststack.start_stop_incoming_pipeline(False)
+        self.gststack.start_stop_outgoing_pipeline(False)
         return True
 
     def _alert(self, title, text=None, timeout=5):
