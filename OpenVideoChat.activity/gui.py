@@ -49,6 +49,9 @@ class Gui(Gtk.Grid):
         # Set Activity
         self.activity = activity
 
+        # Set Activity Title
+        self.activity.set_title(_("OpenVideoChat"))
+
         # Add Video & Chat Containers
         self.add(self.build_videogrid())
         self.attach(self.build_chatgrid(), 0, 1, 1, 1)

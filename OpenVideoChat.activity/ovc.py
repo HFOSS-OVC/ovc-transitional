@@ -63,15 +63,12 @@ class OpenVideoChatActivity(Activity):
         else:
             self.sent_ip = 2
 
-
-        ################
-        # INITIALIZE GUI
-        ################
-        self.set_title('OpenVideoChat')
-
         ###########
         # Setup Gui
         ###########
+        # Change to:
+        # self.set_canvas(Gui(self))
+        # Modify all gui. references to get_canvas()
         self.gui = Gui(self)
         self.gui.show()
         self.set_canvas(self.gui)
