@@ -87,7 +87,7 @@ class OpenVideoChatActivity(Activity):
         # Setup Pipeline
         #################
         print "Setting up GStreamer"
-        self.gststack = GSTStack(self.gui.send_video_to_screen)
+        self.gststack = GSTStack(self.gui.render_preview, self.gui.render_incoming)
         self.gststack.build_incoming_pipeline()
         GObject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
 

@@ -238,8 +238,8 @@ class Gui(Gtk.Grid):
         if self.activity.get_stream():
             self.movie_window.show()
 
-    def send_video_to_screen(self, source, screen):
-        if screen == 'MAIN':
-            source.set_xwindow_id(self.movie_window.get_property('window').get_xid())
-        elif screen == 'PREVIEW':
-            source.set_xwindow_id(self.movie_window_preview.get_property('window').get_xid())
+    def render_preview(self, source):
+        source.set_xwindow_id(self.movie_window_preview.get_property('window').get_xid())
+
+    def render_incoming(self, source):
+        source.set_xwindow_id(self.movie_window.get_property('window').get_xid())
