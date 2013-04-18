@@ -36,6 +36,7 @@ from gi.repository import Gst
 CAPS = "video/x-raw,width=320,height=240,framerate=15/1"
 
 class VideoOutBin(Gst.Bin):
+    self.__init__
     # Video Source
     video_src = Gst.ElementFactory.make("autovideosrc", None)
     self.add(video_src)
