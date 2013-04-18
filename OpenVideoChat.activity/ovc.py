@@ -21,20 +21,23 @@
 .. moduleauthor:: Fran Rogers <fran@dumetella.net>
 .. moduleauthor:: Remy DeCausemaker <remyd@civx.us>
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
-.. moduleauthor:: Casey DeLorme <cxd4280@rit.edu>
 """
 
 #External Imports
-from sugar3 import profile
-from gettext import gettext as _
-from gi.repository import GObject
+# from gi.repository import GObject
+
+from gettext import gettext as _    #For Translations
 from sugar3.activity.activity import Activity
 from sugar3.graphics.alert import NotifyAlert
+from sugar3 import profile
 
 #Local Imports
 from gui import Gui
-from gst_stack import GSTStack
 from sugar_network_stack import SugarNetworkStack
+from gst_stack import GSTStack
+
+# Temporary Constants
+RECEIVING_STREAM = False
 
 
 class OpenVideoChatActivity(Activity):
@@ -42,19 +45,24 @@ class OpenVideoChatActivity(Activity):
     def __init__(self, handle):
         Activity.__init__(self, handle)
 
-        # GObject is used for timeing (will be removed when rtp is implemented)
-        GObject.threads_init()
-
         # Self-Enforced max_participants
         self.max_participants = 2
 
 
+        # Testing what exactly the "handle" is, is it the bundle_id?
+        # print handle
+        # print handle.activity_id
+        # print handle.invited
+        # Wow it is an object.
+        # GObject is used for timeing (will be removed when rtp is implemented)
+        # GObject.threads_init()
         # Adjust Design of when to send ip based on shared_activity
         # Prevents double-streaming
         if self.shared_activity:
             self.sent_ip = 1
         else:
             self.sent_ip = 2
+
 
         ################
         # INITIALIZE GUI
@@ -71,22 +79,22 @@ class OpenVideoChatActivity(Activity):
         #####################
         # Setup Network Stack
         #####################
-        self.netstack = SugarNetworkStack(self)
-        self._sh_hnd = self.connect('shared', self.netstack.shared_cb)
-        self._jo_hnd = self.connect('joined', self.netstack.joined_cb)
+        # self.netstack = SugarNetworkStack(self)
+        # self._sh_hnd = self.connect('shared', self.netstack.shared_cb)
+        # self._jo_hnd = self.connect('joined', self.netstack.joined_cb)
 
         #################
         # Setup Pipeline
-        ###i##############
-        print "Setting up GStreamer"
-        self.gststack = GSTStack(self.gui.send_video_to_screen)
-        self.gststack.build_incoming_pipeline()
-        GObject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
+        #################
+        # print "Setting up GStreamer"
+        # self.gststack = GSTStack(self.gui.send_video_to_screen)
+        # self.gststack.build_incoming_pipeline()
+        # GObject.idle_add(self.gststack.start_stop_incoming_pipeline, True)
 
     def can_close(self):
         print "Closing, stopping pipelines"
-        self.gststack.start_stop_incoming_pipeline(False)
-        self.gststack.start_stop_outgoing_pipeline(False)
+        # self.gststack.start_stop_incoming_pipeline(False)
+        # self.gststack.start_stop_outgoing_pipeline(False)
         return True
 
     def _alert(self, title, text=None, timeout=5):
@@ -185,27 +193,27 @@ class OpenVideoChatActivity(Activity):
             self.gui.receive_message(_("%s has left the chat") % args)
 
     # Send new chat message
-    def send_chat_text(self, text):
+    def send_message(self, text):
         handle = self.netstack.get_tube_handle()
         prof = profile.get_nick_name()
 
         if handle:
-            handle.send_chat_text("<%s> %s" % (prof, text))
-
-    # Save Chat Log
-    def write_file(self, file_path):
-        file = open(file_path, 'w')
-        file.write(self.gui.get_history())
-        file.close()
-
-    # Load Chat Log
-    def read_file(self, file_path):
-        file = open(file_path, 'r')
-        self.gui.receive_message(file.read())
-        file.close()
+            handle.receive_message("<%s> %s" % (prof, text))
 
     def get_stream(self):
         return RECEIVING_STREAM
 
     def send_stream(self):
         self.gui.receive_stream()
+
+    # Save Chat Log to History
+    def write_file(self, file_path):
+        file = open(file_path, 'w')
+        file.write(self.gui.get_history())
+        file.close()
+
+    # Load Chat Log from History
+    def read_file(self, file_path):
+        file = open(file_path, 'r')
+        self.gui.receive_message(file.read())
+        file.close()
