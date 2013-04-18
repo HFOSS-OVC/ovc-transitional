@@ -38,7 +38,7 @@ CAPS = "video/x-raw,width=320,height=240,framerate=15/1"
 class VideoOutBin(Gst.Bin):
     def __init__(self):
             super(VideoOutBin, self).__init__()
-            
+
             # Video Source
             video_src = Gst.ElementFactory.make("autovideosrc", None)
             self.add(video_src)
@@ -127,7 +127,7 @@ class AudioOutBin(Gst.Bin):
 class VideoInBin(Gst.Bin):
     def __init__(self):
             super(VideoInBin, self).__init__()
-            
+
             # Video Source
             video_src = Gst.ElementFactory.make("udpsrc", None)
             video_src.set_property("port", 5004)
@@ -158,7 +158,7 @@ class VideoInBin(Gst.Bin):
 class AudioInBin(Gst.Bin):
     def __init__(self):
             super(AudioInBin, self).__init__()
-            
+
             # Audio Source
             audio_src = Gst.ElementFactory.make("udpsrc", None)
             audio_src.set_property("port", 5005)
