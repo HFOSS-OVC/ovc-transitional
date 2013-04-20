@@ -23,16 +23,23 @@
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
 """
 
+
 #External Imports
-from gettext import gettext as _    #For Translations
-from sugar3.activity.activity import Activity
-from sugar3.graphics.alert import NotifyAlert
+import fcntl
+import array
+import socket
+import struct
 from sugar3 import profile
+from gettext import gettext as _
+from sugar3.graphics.alert import NotifyAlert
+from sugar3.activity.activity import Activity
+
 
 #Local Imports
 from gui import Gui
-from network_stack import NetworkStack
 from gst_stack import GSTStack
+from network_stack import NetworkStack
+
 
 # Temporary Constants
 RECEIVING_STREAM = False
@@ -105,10 +112,6 @@ class OpenVideoChatActivity(Activity):
         elif src == "join":
             handle = self.netstack.get_tube_handle()
             if handle and self.sent_ip > 0:
-                import socket
-                import fcntl
-                import struct
-                import array
                 # http://code.activestate.com/recipes/439094-get-the-ip-address
                 # -associated-with-a-network-inter/
 

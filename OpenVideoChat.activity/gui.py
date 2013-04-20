@@ -80,7 +80,6 @@ class Gui(Gtk.Grid):
         # Add a name & apply complex CSS based theming
         provider = Gtk.CssProvider()
         provider.load_from_data("GtkDrawingArea { background: #000000; }")
-        # provider.load_from_data(".background { background: #000 }")# Apply to whole window
         styler = video_grid.get_style_context()
         styler.add_provider_for_screen(
             Gdk.Screen.get_default(),
