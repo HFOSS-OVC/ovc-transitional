@@ -24,8 +24,6 @@
 """
 
 #External Imports
-# from gi.repository import GObject
-
 from gettext import gettext as _    #For Translations
 from sugar3.activity.activity import Activity
 from sugar3.graphics.alert import NotifyAlert
@@ -33,7 +31,7 @@ from sugar3 import profile
 
 #Local Imports
 from gui import Gui
-from sugar_network_stack import SugarNetworkStack
+from network_stack import NetworkStack
 from gst_stack import GSTStack
 
 # Temporary Constants
@@ -48,31 +46,23 @@ class OpenVideoChatActivity(Activity):
         # Self-Enforced max_participants
         self.max_participants = 2
 
-
-        # Testing what exactly the "handle" is, is it the bundle_id?
-        # print handle
-        # print handle.activity_id
-        # print handle.invited
-        # Wow it is an object.
-        # GObject is used for timeing (will be removed when rtp is implemented)
-        # GObject.threads_init()
-        # Adjust Design of when to send ip based on shared_activity
-        # Prevents double-streaming
+        # Revise logical checks to shared_activity flags and remove these:
         if self.shared_activity:
             self.sent_ip = 1
         else:
             self.sent_ip = 2
 
+
         ###########
         # Setup Gui
         ###########
-        # Change to:
         self.set_canvas(Gui(self))
+
 
         #####################
         # Setup Network Stack
         #####################
-        self.netstack = SugarNetworkStack(self)
+        self.netstack = NetworkStack(self)
         self._sh_hnd = self.connect('shared', self.netstack.shared_cb)
         self._jo_hnd = self.connect('joined', self.netstack.joined_cb)
 
