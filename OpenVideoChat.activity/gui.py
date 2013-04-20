@@ -53,8 +53,8 @@ class Gui(Gtk.Grid):
         self.activity.set_title(_("OpenVideoChat"))
 
         # Add Video & Chat Containers
-        self.add(self.build_videogrid())
-        self.attach(self.build_chatgrid(), 0, 1, 1, 1)
+        self.add(self.build_video())
+        self.attach(self.build_chat(), 0, 1, 1, 1)
 
         # Append Toolbar
         self.activity.set_toolbar_box(self.build_toolbar())
@@ -62,36 +62,30 @@ class Gui(Gtk.Grid):
         # Display GUI
         self.show()
 
-    def build_videogrid(self):
+    def build_video(self):
         # Prepare Video Display
         self.movie_window_preview = Gtk.DrawingArea()
         self.movie_window = Gtk.DrawingArea()
-        self.movie_window_preview.set_hexpand(True)
-        self.movie_window_preview.set_vexpand(True)
-        self.movie_window.set_hexpand(True)
-        self.movie_window.set_vexpand(True)
 
-        # Create Grid Container
-        video_grid = Gtk.Grid()
-        video_grid.set_column_spacing(6)
-        video_grid.add(self.movie_window_preview)
-        video_grid.attach(self.movie_window, 1, 0, 1, 1)
+        # Use Fixed to append overlays to an overlay
+        video_fixed = Gtk.Fixed()
+        video_fixed.put(self.movie_window, 0, 0)
+        video_fixed.put(self.movie_window_preview, 0, 0)
+        video_fixed.set_halign(Gtk.Align.START)
+        video_fixed.set_valign(Gtk.Align.START)
 
-        # Add a name & apply complex CSS based theming
-        provider = Gtk.CssProvider()
-        provider.load_from_data("GtkDrawingArea { background: #000000; }")
-        styler = video_grid.get_style_context()
-        styler.add_provider_for_screen(
-            Gdk.Screen.get_default(),
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        # Use event box for background coloring
+        video_eventbox = Gtk.EventBox()
+        video_eventbox.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.01,.01,.01,.8))
+        video_eventbox.set_hexpand(True)
+        video_eventbox.set_vexpand(True)
+        video_eventbox.add(video_fixed)
+        video_eventbox.show_all()
 
-        video_grid.show_all()
+        # Return Overlay Container
+        return video_eventbox
 
-        # Return Main Container
-        return video_grid
-
-    def build_chatgrid(self):
+    def build_chat(self):
         # Prepare Chat Text Container
         self.chat_text = Gtk.TextBuffer()
         self.text_view = Gtk.TextView()
@@ -127,6 +121,7 @@ class Gui(Gtk.Grid):
         chat_expander.set_expanded(True)
         chat_expander.add(chat_grid)
 
+        # Display all chat components
         chat_expander.show_all()
 
         # Return entire expander
@@ -139,13 +134,24 @@ class Gui(Gtk.Grid):
         # Create activity button
         toolbar_box.toolbar.insert(ActivityButton(self.activity), -1)
 
-        # Create Settings Drop-Down
-        settings_toolbar = self.build_settings_toolbar()
-        settings_toolbar_button = ToolbarButton(
-                page=settings_toolbar,
-                icon_name="preferences-system")
-                # icon_name="view-source")
-        toolbar_box.toolbar.insert(settings_toolbar_button, -1)
+        # Storage for Toggle Buttons
+        self.settings_buttons = {}
+
+        # Video Toggle
+        self.settings_buttons["toggle_video"] = ToolButton()
+        self.settings_buttons["toggle_video"].connect("clicked", self.toggle_video)
+        toolbar_box.toolbar.insert(self.settings_buttons["toggle_video"], -1)
+
+        # Audio Toggle
+        self.settings_buttons["toggle_audio"] = ToolButton()
+        self.settings_buttons["toggle_audio"].connect("clicked", self.toggle_audio)
+        toolbar_box.toolbar.insert(self.settings_buttons["toggle_audio"], -1)
+
+        # Forced Refresh
+        reload_video = ToolButton("view-refresh")
+        reload_video.set_tooltip_text(_("Reload Video"))
+        reload_video.connect("clicked", self.force_redraw)
+        toolbar_box.toolbar.insert(reload_video, -1)
 
         # Push stop button to far right
         separator = Gtk.SeparatorToolItem()
@@ -156,64 +162,53 @@ class Gui(Gtk.Grid):
         # Create stop button
         toolbar_box.toolbar.insert(StopButton(self.activity), -1)
 
+        # Run Toggles
+        self.run_toggles()
+
         # Display all components & Return
         toolbar_box.show_all()
         return toolbar_box
 
-    def build_settings_toolbar(self):
-        # Storage for Settings Buttons
-        self.settings_buttons = {}
-
-        # Add Hacky-Reload Button (For now)
-        self.settings_buttons["reload_video"] = ToolButton("view-refresh")
-        self.settings_buttons["reload_video"].set_tooltip_text(_("Reload Video"))
-        self.settings_buttons["reload_video"].connect("clicked", self.force_redraw)
-
-        # Video Toggle Button
-        self.settings_buttons["toggle_video"] = ToolButton()
-        self.settings_buttons["toggle_video"].connect("clicked", self.toggle_video)
+    def run_toggles(self):
         self.toggle_video(None)
-
-        # Audio Toggle Button
-        self.settings_buttons["toggle_audio"] = ToolButton()
-        self.settings_buttons["toggle_audio"].connect("clicked", self.toggle_audio)
         self.toggle_audio(None)
-
-        # Create Settings Menu
-        settings_toolbar = Gtk.Toolbar()
-        settings_toolbar.insert(self.settings_buttons["reload_video"], -1)
-        settings_toolbar.insert(self.settings_buttons["toggle_video"], -1)
-        settings_toolbar.insert(self.settings_buttons["toggle_audio"], -1)
-
-        # Display & Return Settings Menu
-        settings_toolbar.show_all()
-        return settings_toolbar
 
     def toggle_video(self, trigger):
-        if self.activity.get_stream() and self.settings_buttons["toggle_video"].get_icon_name() == "activity-start":
-            self.movie_window.show()
-            # Call to gstreamer here
-            self.settings_buttons["toggle_video"].set_icon_name("activity-stop")
-            self.settings_buttons["toggle_video"].set_tooltip_text(_("Stop Video"))
+        if self.activity.get_stream():
+            self.settings_buttons["toggle_video"].set_sensitive(True)
+            if self.settings_buttons["toggle_video"].get_icon_name() == "activity-stop":
+                self.movie_window.hide()
+                self.movie_window_preview_width, self.movie_window_preview_height = False, False
+                self.settings_buttons["toggle_video"].set_icon_name("activity-start")
+                self.settings_buttons["toggle_video"].set_tooltip_text("Start Video")
+                # Call to GStreamer to restart video
+            else:
+                self.movie_window.show()
+                self.movie_window_preview_width, self.movie_window_preview_height = 320, 240
+                self.settings_buttons["toggle_video"].set_icon_name("activity-stop")
+                self.settings_buttons["toggle_video"].set_tooltip_text("Stop Video")
+                # Call to GStreamer to end video
         else:
-            self.movie_window.hide()
-            # Call to gstreamer here
+            self.settings_buttons["toggle_video"].set_sensitive(False)
             self.settings_buttons["toggle_video"].set_icon_name("activity-start")
-            self.settings_buttons["toggle_video"].set_tooltip_text(_("Start Video"))
+            self.settings_buttons["toggle_video"].set_tooltip_text("Start Video")
+            self.movie_window.hide()
 
     def toggle_audio(self, trigger):
-        if self.activity.get_stream() and self.settings_buttons["toggle_video"].get_icon_name() == "speaker-100":
-            # Call to gstreamer here
-            self.settings_buttons["toggle_audio"].set_icon_name("speaker-100")
-            self.settings_buttons["toggle_audio"].set_tooltip_text(_("Mute Audio"))
+        if self.activity.get_stream():
+            self.settings_buttons["toggle_audio"].set_sensitive(True)
+            if self.settings_buttons["toggle_audio"].get_icon_name() == "speaker-000":
+                self.settings_buttons["toggle_audio"].set_icon_name("speaker-100")
+                self.settings_buttons["toggle_audio"].set_tooltip_text("Turn on Sound")
+                # Call to GStreamer to restart audio
+            else:
+                self.settings_buttons["toggle_audio"].set_icon_name("speaker-000")
+                self.settings_buttons["toggle_audio"].set_tooltip_text("Mute Sound")
+                # Call to GStreamer to end audio
         else:
-            # Call to gstreamer here
-            self.settings_buttons["toggle_audio"].set_icon_name("speaker-000")
-            self.settings_buttons["toggle_audio"].set_tooltip_text(_("Turn Audio On"))
-
-    def receive_stream(self):
-        self.toggle_video(None)
-        self.toggle_audio(None)
+            self.settings_buttons["toggle_audio"].set_sensitive(False)
+            self.settings_buttons["toggle_audio"].set_icon_name("speaker-100")
+            self.settings_buttons["toggle_audio"].set_tooltip_text("Turn on Sound")
 
     def get_history(self):
         return self.chat_text.get_text(
@@ -234,14 +229,26 @@ class Gui(Gtk.Grid):
     def force_redraw(self, trigger):
         # Fixme: This should not be required, this is a hack for now until
         # a better solution that works is found
+        # With fixed for overlay order of show() matters
+        self.movie_window.hide()
         self.movie_window_preview.hide()
         self.movie_window_preview.show()
-        self.movie_window.hide()
         if self.activity.get_stream():
             self.movie_window.show()
 
     def render_preview(self, source):
+        if self.movie_window_preview_height:
+            self.movie_window_preview.set_size_request(
+                    self.movie_window_preview.get_parent().get_parent().get_allocation().width,
+                    self.movie_window_preview.get_parent().get_parent().get_allocation().height)
+        else:
+            self.movie_window_preview.set_size_request(
+                    self.movie_window_preview_width,
+                    self.movie_window_preview_height)
         source.set_xwindow_id(self.movie_window_preview.get_property('window').get_xid())
 
     def render_incoming(self, source):
+        self.movie_window.set_size_request(
+                self.movie_window.get_parent().get_parent().get_allocation().width,
+                self.movie_window.get_parent().get_parent().get_allocation().height)
         source.set_xwindow_id(self.movie_window.get_property('window').get_xid())

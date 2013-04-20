@@ -190,7 +190,7 @@ class OpenVideoChatActivity(Activity):
         return RECEIVING_STREAM
 
     def send_stream(self):
-        self.get_canvas().receive_stream()
+        self.get_canvas().run_toggles()
 
     # Save Chat Log to History
     def write_file(self, file_path):
