@@ -33,6 +33,7 @@ from sugar3 import profile
 from gettext import gettext as _
 from sugar3.graphics.alert import NotifyAlert
 from sugar3.activity.activity import Activity
+from gi.repository import GObject
 
 
 #Local Imports
