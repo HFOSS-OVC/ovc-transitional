@@ -52,6 +52,7 @@ class GSTStack:
         self._audio_in_bin = AudioInBin()
         self._video_in_bin = VideoInBin()
         self._video_local_tee = Gst.ElementFactory.make("tee", None)
+        self.ip = None
 
     #Toggle Video State (args are on or off)
     def toggle_video_state(self, start=True):
@@ -130,7 +131,9 @@ class GSTStack:
 
     #Outgoing Pipeline
     def build_outgoing_pipeline(self, ip):
-        print "Building outgoing pipeline UDP to %s" % ip
+        self.ip = ip
+
+        print "Building outgoing pipeline UDP to %s" % self.ip
 
         # Add Video Out Bin to Pipeline
         self._in_pipeline.add(self._video_out_bin)
@@ -252,7 +255,7 @@ class VideoOutBin(Gst.Bin):
 
             # Add udpsink
             udp_sink = Gst.ElementFactory.make("udpsink", None)
-            udp_sink.set_property("host", ip)
+            udp_sink.set_property("host", self.ip)
             udp_sink.set_property("port", 5004)
             self.add(udp_sink)
 
@@ -284,7 +287,7 @@ class AudioOutBin(Gst.Bin):
 
             # Audio UDP Sink
             udp_sink = Gst.ElementFactory.make("udpsink", None)
-            udp_sink.set_property("host", ip)
+            udp_sink.set_property("host", self.ip)
             udp_sink.set_property("port", 5005)
             self.add(udp_sink)
 
