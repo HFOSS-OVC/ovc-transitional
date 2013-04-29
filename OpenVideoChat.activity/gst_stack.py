@@ -29,7 +29,10 @@
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
-from gst_bins import VideoOutBin, AudioOutBin, VideoInBin, AudioInBin
+from gst_bins import VideoOutBin
+from gst_bins import AudioOutBin
+from gst_bins import VideoInBin
+from gst_bins import AudioInBin
 
 # Internal Imports
 
@@ -48,8 +51,8 @@ class GSTStack:
         self.render_incoming = render_incoming
         self._out_pipeline = None
         self._in_pipeline = None
-        self._audio_out_bin = AudioOutBin()
-        self._video_out_bin = VideoOutBin()
+        self._audio_out_bin = None
+        self._video_out_bin = None
         self._audio_in_bin = AudioInBin()
         self._video_in_bin = VideoInBin()
         self._video_local_tee = Gst.ElementFactory.make("tee", None)
@@ -134,8 +137,8 @@ class GSTStack:
         print "Building outgoing pipeline UDP to %s" % self.ip
 
         # Set Bin IPs
-        self._video_out_bin.set_ip(ip)
-        self._audio_out_bin.set_ip(ip)
+        self._video_out_bin = VideoOutBin(ip)
+        self._audio_out_bin = AudioOutBin(ip)
 
         # Add Video/Audio Out Bin to Pipeline
         self._out_pipeline.add(self._video_out_bin)

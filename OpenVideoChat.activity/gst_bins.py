@@ -29,10 +29,10 @@ from gi.repository import Gst
 ##############
 class VideoOutBin(Gst.Bin):
     def __init__(self):
-        super(VideoOutBin, self).__init__()
+        super(VideoOutBin, self).__init__(ip)
 		
 		# Set IP 
-        self.ip = None
+        self.ip = ip
         
         # Add theora Encoder
         video_enc = Gst.ElementFactory.make("theoraenc", None)
@@ -54,9 +54,6 @@ class VideoOutBin(Gst.Bin):
         video_tee.link(video_enc)
         video_enc.link(video_rtp_theora_pay)
         video_rtp_theora_pay.link(udp_sink)
-
-    def set_ip(ip):
-        self.ip = ip
 
 
 ##############
@@ -90,9 +87,6 @@ class AudioOutBin(Gst.Bin):
         audio_src.link(audio_enc)
         audio_enc.link(audio_rtp)
         audio_rtp.link(udp_sink)
-    
-    def set_ip(ip):
-        self.ip = ip
 
 
 #############
