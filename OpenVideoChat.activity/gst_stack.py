@@ -69,7 +69,7 @@ class GSTStack:
 
 
     #Toggle Audio State
-    def toggle_audio_state(self, Start=True):
+    def toggle_audio_state(self, start=True):
         if self._out_pipeline != None:
             if start:
                 print "Setting audio bin state: STATE_PLAYING"
@@ -87,6 +87,8 @@ class GSTStack:
         
         # Start Outgoing pipeline
         self._out_pipeline = Gst.Pipeline()
+
+        print "BUILDING PREVIEW"
 
         # Build Video Source (Webcam) and add to outgoing pipeline
         # Video Source
@@ -147,34 +149,34 @@ class GSTStack:
         # Link Video Bin to Tee Element
         self._video_local_tee.link(self._video_out_bin)
 
-        # Connect to pipeline bus for signals.
-        bus = self._out_pipeline.get_bus()
-        bus.add_signal_watch()
-        bus.enable_sync_message_emission()
+        # # Connect to pipeline bus for signals.
+        # bus = self._out_pipeline.get_bus()
+        # bus.add_signal_watch()
+        # bus.enable_sync_message_emission()
 
-        def on_message(bus, message):
-            """
-            This method handles errors on the video bus and then stops
-            the pipeline.
-            """
-            t = message.type
-            if t == Gst.MessageType.EOS:
-                self._out_pipeline.set_state(Gst.State.NULL)
-            elif t == Gst.MessageType.ERROR:
-                err, debug = message.parse_error()
-                print "Error: %s" % err, debug
-                self._out_pipeline.set_state(Gst.State.NULL)
+        # def on_message(bus, message):
+        #     """
+        #     This method handles errors on the video bus and then stops
+        #     the pipeline.
+        #     """
+        #     t = message.type
+        #     if t == Gst.MessageType.EOS:
+        #         self._out_pipeline.set_state(Gst.State.NULL)
+        #     elif t == Gst.MessageType.ERROR:
+        #         err, debug = message.parse_error()
+        #         print "Error: %s" % err, debug
+        #         self._out_pipeline.set_state(Gst.State.NULL)
 
-        def on_sync_message(bus, message):
-            if message.structure is None:
-                return
+        # def on_sync_message(bus, message):
+        #     if message.structure is None:
+        #         return
 
-            if message.structure.get_name() == "prepare-xwindow-id":
-                # Assign the viewport
-                self.render_preview(message.src)
+        #     if message.structure.get_name() == "prepare-xwindow-id":
+        #         # Assign the viewport
+        #         self.render_preview(message.src)
 
-        bus.connect("message", on_message)
-        bus.connect("sync-message::element", on_sync_message)
+        # bus.connect("message", on_message)
+        # bus.connect("sync-message::element", on_sync_message)
 
 
 
