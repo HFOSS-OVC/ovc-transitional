@@ -196,34 +196,34 @@ class GSTStack:
         self._in_pipeline.add(self._video_in_bin)
         self._in_pipeline.add(self._audio_in_bin)
 
-        # Connect to pipeline bus for signals.
-        bus = self._in_pipeline.get_bus()
-        bus.add_signal_watch()
-        bus.enable_sync_message_emission()
+        # # Connect to pipeline bus for signals.
+        # bus = self._in_pipeline.get_bus()
+        # bus.add_signal_watch()
+        # bus.enable_sync_message_emission()
 
-        def on_message(bus, message):
-            """
-            This method handles errors on the video bus and then stops
-            the pipeline.
-            """
-            t = message.type
-            if t == Gst.MessageType.EOS:
-                self._in_pipeline.set_state(Gst.State.NULL)
-            elif t == Gst.MessageType.ERROR:
-                err, debug = message.parse_error()
-                print "Error: %s" % err, debug
-                self._in_pipeline.set_state(Gst.State.NULL)
+        # def on_message(bus, message):
+        #     """
+        #     This method handles errors on the video bus and then stops
+        #     the pipeline.
+        #     """
+        #     t = message.type
+        #     if t == Gst.MessageType.EOS:
+        #         self._in_pipeline.set_state(Gst.State.NULL)
+        #     elif t == Gst.MessageType.ERROR:
+        #         err, debug = message.parse_error()
+        #         print "Error: %s" % err, debug
+        #         self._in_pipeline.set_state(Gst.State.NULL)
 
-        def on_sync_message(bus, message):
-            if message.structure is None:
-                return
+        # def on_sync_message(bus, message):
+        #     if message.structure is None:
+        #         return
 
-            if message.structure.get_name() == "prepare-xwindow-id":
-                # Assign the viewport
-                self.render_incoming(message.src)
+        #     if message.structure.get_name() == "prepare-xwindow-id":
+        #         # Assign the viewport
+        #         self.render_incoming(message.src)
 
-        bus.connect("message", on_message)
-        bus.connect("sync-message::element", on_sync_message)
+        # bus.connect("message", on_message)
+        # bus.connect("sync-message::element", on_sync_message)
 
     def start_stop_outgoing_pipeline(self, start=True):
         if self._out_pipeline != None:
