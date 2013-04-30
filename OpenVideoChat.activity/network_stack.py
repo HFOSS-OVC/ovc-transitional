@@ -40,7 +40,7 @@ logger = logging.getLogger('ovc-activity')
 from tube_speak import TubeSpeak
 
 
-class NetworkStack:
+class NetworkStack(object):
 
     def __init__(self, activity):
         self.activity = activity

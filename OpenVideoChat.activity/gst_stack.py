@@ -50,7 +50,7 @@ CAPS = "video/x-raw,width=320,height=240,framerate=15/1"
 ###########
 # GSTStack
 ###########
-class GSTStack:
+class GSTStack(object):
 
     def __init__(self, render_preview, render_incoming):
         Gst.init(None)
