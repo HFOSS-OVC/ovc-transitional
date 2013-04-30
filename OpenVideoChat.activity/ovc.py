@@ -21,10 +21,12 @@
 .. moduleauthor:: Fran Rogers <fran@dumetella.net>
 .. moduleauthor:: Remy DeCausemaker <remyd@civx.us>
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
+.. moduleauthor:: Casey DeLorme <cxd4280@rit.edu>
 """
 
 
 #External Imports
+import logger
 import fcntl
 import array
 import socket
@@ -34,6 +36,10 @@ from gettext import gettext as _
 from sugar3.graphics.alert import NotifyAlert
 from sugar3.activity.activity import Activity
 from gi.repository import GObject
+
+
+# Define Logger for Logging
+logger = logging.getLogger('ovc-activity')
 
 
 #Local Imports

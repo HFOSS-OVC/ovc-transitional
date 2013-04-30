@@ -26,9 +26,14 @@
 
 
 # External Imports
+import logger
 import telepathy
 from sugar3.presence import presenceservice
 from sugar3.presence.tubeconn import TubeConnection
+
+
+# Define Logger for Logging
+logger = logging.getLogger('ovc-activity')
 
 
 # Internal Imports

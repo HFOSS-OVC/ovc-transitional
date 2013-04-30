@@ -26,6 +26,7 @@
 
 
 # External Imports
+import logger
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gettext import gettext as _
@@ -36,6 +37,10 @@ from sugar3.activity.widgets import ActivityButton
 from sugar3.graphics.toolbarbox import ToolbarButton
 # from sugar.activity.activity import ActivityToolbox
 # from sugar.graphics.toolbutton import ToolButton
+
+# Define Logger for Logging
+logger = logging.getLogger('ovc-activity')
+
 
 # Constants
 MAX_MESSAGE_SIZE = 200

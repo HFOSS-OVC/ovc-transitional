@@ -20,12 +20,14 @@
 .. moduleauthor:: Justin Lewis <jlew.blackout@gmail.com>
 .. moduleauthor:: Taylor Rose <tjr1351@rit.edu>
 .. moduleauthor:: Fran Rogers <fran@dumetella.net>
-.. moduleauthro:: Remy DeCausemaker <remyd@civx.us>
+.. moduleauthor:: Remy DeCausemaker <remyd@civx.us>
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
 .. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
+.. moduleauthor:: Casey DeLorme <CalebCoffie@rit.edu>
 """
 
 # External Imports
+import logger
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
@@ -33,6 +35,11 @@ from gst_bins import VideoOutBin
 from gst_bins import AudioOutBin
 from gst_bins import VideoInBin
 from gst_bins import AudioInBin
+
+
+# Define Logger for Logging
+logger = logging.getLogger('ovc-activity')
+
 
 # Internal Imports
 
@@ -77,14 +84,14 @@ class GSTStack:
             else:
                 print "Setting audio bin state: STATE_NULL"
                 self._audio_out_bin.set_state(Gst.State.NULL)
-    
+
     #Build Preview
     def build_preview(self):
          #Checks if there is outgoing pipeline already
         if self._out_pipeline != None:
             print "WARNING: outgoing pipeline exists"
             return
-        
+
         # Start Outgoing pipeline
         self._out_pipeline = Gst.Pipeline()
 

@@ -17,11 +17,19 @@
         Open Video Chat GStreamer Stack
 =======================================================================
 .. moduleauthor:: Caleb Coffie <CalebCoffie@gmail.com>
+.. moduleauthor:: Casey DeLorme <CalebCoffie@rit.edu>
 """
 
+
+# External Imports
+import logger
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
+
+
+# Define Logger for Logging
+logger = logging.getLogger('ovc-activity')
 
 
 ##############
@@ -30,10 +38,10 @@ from gi.repository import Gst
 class VideoOutBin(Gst.Bin):
     def __init__(self):
         super(VideoOutBin, self).__init__(ip)
-		
-		# Set IP 
+
+		# Set IP
         self.ip = ip
-        
+
         # Add theora Encoder
         video_enc = Gst.ElementFactory.make("theoraenc", None)
         video_enc.set_property("bitrate", 50)
