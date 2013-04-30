@@ -36,10 +36,6 @@ from sugar3.presence.tubeconn import TubeConnection
 logger = logging.getLogger('ovc-activity')
 
 
-# Internal Imports
-from tube_speak import TubeSpeak
-
-
 class NetworkStack(object):
 
     def __init__(self, activity):
